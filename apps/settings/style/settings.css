@@ -665,3 +665,17 @@ section[data-dialog] > header:first-child .icon.icon-back {
   background-image: url(/shared/style/headers/images/icons/close.png);
 }
 
+/******************************************************************************
+ * Firefox Accounts
+ */
+#fxa-delete-account {
+  border-radius: 0.3rem;
+  background-color: darkred;
+  color: #fff;
+  border: none;
+  text-shadow: none;
+}
+
+#fxa-descriptions {
+  font-size: 1.4rem;
+}
