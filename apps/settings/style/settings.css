@@ -656,6 +656,20 @@ section[role="status"] {
 
 section[role="status"].toast-visible {
   opacity: 1;
+
+/******************************************************************************
+ * Firefox Accounts
+ */
+#fxa-delete-account {
+  border-radius: 0.3rem;
+  background-color: darkred;
+  color: #fff;
+  border: none;
+  text-shadow: none;
+}
+
+#fxa-descriptions {
+  font-size: 1.4rem;
 }
 
 /******************************************************************************
