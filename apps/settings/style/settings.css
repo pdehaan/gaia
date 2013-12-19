@@ -668,8 +668,13 @@ section[role="status"].toast-visible {
   text-shadow: none;
 }
 
-#fxa-descriptions {
+.fxa-description {
   font-size: 1.4rem;
+  white-space: normal;
+}
+
+.fxa-email {
+  text-decoration: underline;
 }
 
 /******************************************************************************
