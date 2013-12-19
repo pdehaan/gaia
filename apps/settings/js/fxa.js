@@ -2,6 +2,7 @@
 // TODO do we need transitions for moving between logged in/out screens?
 // TODO do we need a third screen for "unverified/check your email"?
 // TODO do we want to disable some buttons after clicking?
+// TODO l10n!
 
 'use strict';
 
@@ -132,6 +133,4 @@ var Accounts = (function account_settings() {
 
 })();
 
-// TODO l10n doesn't seem to work?
-// navigator.mozL10n.ready(Accounts.init());
-Accounts.init();
+navigator.mozL10n.ready(Accounts.init());
