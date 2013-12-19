@@ -5,10 +5,10 @@
       <a href="#root"><span class="icon icon-back">back</span></a>
       <h1 data-l10n-id="fxa-accounts"> Firefox Accounts </h1>
     </header>
-    <div id="fxa-logged-out">
+    <div id="fxa-logged-out" hidden>
       <ul>
         <li>
-          <p id="fxa-logged-out-description" class="description">
+          <p id="fxa-logged-out-description" class="fxa-description">
             <span data-l10n-id="fxa-description">
               Firefox lets you use a single account to log in to services like
         Marketplace and Where's my Fox.
@@ -29,14 +29,15 @@
       </header>
       <ul>
         <li>
-          <p>
+          <p class="fxa-description">
             <span data-l10n-id="fxa-description">
               Firefox lets you use a single account to log in to services like
         Marketplace and Where's my Fox.
             </span>
-          <p>
-            <span data-l10n-id="fxa-loggedin-text">
-              Logged in as sergi@telenordigital.com
+          </p>
+          <p class="fxa-description">
+            <span data-l10n-id="fxa-logged-in-text">
+              Logged in as <span id="fxa-logged-in-email" class="fxa-email">sergi@telenordigital.com</span>
             </span>
           </p>
         </li>
