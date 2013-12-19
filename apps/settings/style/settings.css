@@ -676,6 +676,11 @@ section[data-dialog] > header:first-child .icon.icon-back {
   text-shadow: none;
 }
 
-#fxa-descriptions {
+.fxa-description {
   font-size: 1.4rem;
+  white-space: normal;
+}
+
+.fxa-email {
+  text-decoration: underline;
 }
