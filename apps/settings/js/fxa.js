@@ -7,12 +7,13 @@
 
 var Accounts = (function account_settings() {
 
-  var loggedOutPanel, loggedInPanel, loginBtn, resetPasswordBtn,
+  var loggedOutPanel, loggedInPanel, loginBtn, changePasswordBtn,
     logoutBtn, deleteAccountBtn, loggedInEmail, currentAccount;
 
   // XXX debugging
   // TODO should we cache this much state at all? or always rely on helper.getAccounts?
   currentAccount = {
+    id: '1234657890',
     email: 'duderonomy@brobible.com'
   };
 
@@ -20,7 +21,7 @@ var Accounts = (function account_settings() {
     loggedOutPanel = document.getElementById('fxa-logged-out');
     loggedInPanel = document.getElementById('fxa-logged-in');
     loginBtn = document.getElementById('fxa-login');
-    resetPasswordBtn = document.getElementById('fxa-reset-password');
+    changePasswordBtn = document.getElementById('fxa-change-password');
     logoutBtn = document.getElementById('fxa-logout');
     deleteAccountBtn = document.getElementById('fxa-delete-account');
     loggedInEmail = document.getElementById('fxa-logged-in-email');
@@ -51,7 +52,7 @@ var Accounts = (function account_settings() {
     loginBtn.onclick = null;
 
     loggedInEmail.textContent = currentAccount.email;
-    resetPasswordBtn.onclick = onResetPasswordBtnClick;
+    changePasswordBtn.onclick = onChangePasswordBtnClick;
     logoutBtn.onclick = onLogoutBtnClick;
     deleteAccountBtn.onclick = onDeleteAccountBtnClick;
 
@@ -64,7 +65,7 @@ var Accounts = (function account_settings() {
     loginBtn.onclick = onLoginBtnClick;
 
     loggedInEmail.textContent = '';
-    resetPasswordBtn.onclick = null;
+    changePasswordBtn.onclick = null;
     logoutBtn.onclick = null;
     deleteAccountBtn.onclick = null;
 
@@ -80,12 +81,13 @@ var Accounts = (function account_settings() {
   function onLoginComplete(e) {
     // TODO figure out the *real* user params from evt, this'll probably throw
     currentAccount = { 
+      id: e.data.id,
       email: e.data.email
     };
     showLoggedInUI();
   }
 
-  function onLoginError(e) {
+  function onLoginError(err) {
     debugger;
     // re-enable button, if disabled
   }
@@ -99,12 +101,24 @@ var Accounts = (function account_settings() {
     showLoggedOutUI();
   };
 
-  function onLogoutError() {
+  function onLogoutError(err) {
     console.error('logout failed: ' + err);
   }
   
-  function onResetPasswordBtnClick(e) {
-    // reset password not yet implemented
+  function onChangePasswordBtnClick(e) {
+    FxAccountsIACHelper.changePassword(
+      currentAccount.id,
+      onChangePasswordComplete,
+      onChangePasswordError
+    );
+  }
+
+  function onChangePasswordComplete() {
+    // TODO what do we need to do here?
+  }
+
+  function onChangePasswordError(err) {
+    console.error('change password failed: ' + err)
   }
 
   function onDeleteAccountBtnClick(e) {
