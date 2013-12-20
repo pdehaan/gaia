@@ -38,7 +38,8 @@ var Accounts = (function account_settings() {
     FxAccountsIACHelper.getAccounts(
       function _onGetAccounts(data) {
         debugger;
-        currentAccount = data.accounts && data.accounts[0]; // TODO what's actual response format?
+        console.error('_onGetAccounts response is: ' + JSON.stringify(data)) // XXX debugging
+        currentAccount = data && data.accounts && data.accounts[0]; // TODO what's actual response format?
       },
       function _onGetAccountsErr(err) {
         // TODO try again once? try with exponential backoff? or just give up?
