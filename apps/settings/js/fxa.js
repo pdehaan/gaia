@@ -8,15 +8,22 @@
 
 var Accounts = (function account_settings() {
 
-  var loggedOutPanel, loggedInPanel, loginBtn, changePasswordBtn,
-    logoutBtn, deleteAccountBtn, loggedInEmail, currentAccount;
+  var loggedOutPanel,
+    loggedInPanel,
+    loginBtn,
+    changePasswordBtn,
+    logoutBtn,
+    deleteAccountBtn,
+    loggedInEmail,
+    currentAccount;
 
   // XXX debugging
-  // TODO should we cache this much state at all? or always rely on helper.getAccounts?
+  /*
   currentAccount = {
     id: '1234657890',
     email: 'duderonomy@brobible.com'
   };
+  */
 
   function init() {
     loggedOutPanel = document.getElementById('fxa-logged-out');
@@ -27,7 +34,6 @@ var Accounts = (function account_settings() {
     deleteAccountBtn = document.getElementById('fxa-delete-account');
     loggedInEmail = document.getElementById('fxa-logged-in-email');
 
-    // TODO show a spinner on initial load so that we never show the wrong state?
     currentAccount ? showLoggedInUI() : showLoggedOutUI();
 
     loadAccountInfo();
@@ -38,7 +44,8 @@ var Accounts = (function account_settings() {
     FxAccountsIACHelper.getAccounts(
       function _onGetAccounts(data) {
         debugger;
-        currentAccount = data.accounts && data.accounts[0]; // TODO what's actual response format?
+        // TODO what's actual response format?
+        currentAccount = data.accounts && data.accounts[0];
       },
       function _onGetAccountsErr(err) {
         // TODO try again once? try with exponential backoff? or just give up?
@@ -81,7 +88,7 @@ var Accounts = (function account_settings() {
 
   function onLoginComplete(e) {
     // TODO figure out the *real* user params from evt, this'll probably throw
-    currentAccount = { 
+    currentAccount = {
       id: e.data.id,
       email: e.data.email
     };
@@ -105,7 +112,7 @@ var Accounts = (function account_settings() {
   function onLogoutError(err) {
     console.error('logout failed: ' + err);
   }
-  
+
   function onChangePasswordBtnClick(e) {
     FxAccountsIACHelper.changePassword(
       currentAccount.id,
@@ -119,7 +126,7 @@ var Accounts = (function account_settings() {
   }
 
   function onChangePasswordError(err) {
-    console.error('change password failed: ' + err)
+    console.error('change password failed: ' + err);
   }
 
   function onDeleteAccountBtnClick(e) {
