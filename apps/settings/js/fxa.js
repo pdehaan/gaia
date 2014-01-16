@@ -13,7 +13,6 @@ var Accounts = (function account_settings() {
     unverifiedPanel,
     overlayPanel,
     loginBtn,
-    changePasswordBtn,
     logoutBtn,
     deleteAccountBtn,
     loggedInUser,
@@ -26,7 +25,6 @@ var Accounts = (function account_settings() {
     unverifiedPanel = document.getElementById('fxa-unverified');
     overlayPanel = document.getElementById('fxa-overlay');
     loginBtn = document.getElementById('fxa-login');
-    changePasswordBtn = document.getElementById('fxa-change-password');
     logoutBtn = document.getElementById('fxa-logout');
     deleteAccountBtn = document.getElementById('fxa-delete-account');
     loggedInEmail = document.getElementById('fxa-logged-in-email');
@@ -94,7 +92,6 @@ var Accounts = (function account_settings() {
   function hideLoggedInPanel() {
     loggedInPanel.hidden = true;
     loggedInEmail.textContent = '';
-    changePasswordBtn.onclick = null;
     logoutBtn.onclick = null;
     deleteAccountBtn.onclick = null;
   }
@@ -103,8 +100,6 @@ var Accounts = (function account_settings() {
     // TODO how to escape this text?
     loggedInEmail.textContent = currentUser;
     loggedInPanel.hidden = false;
-    // TODO insert bug number tracking this feature
-    changePasswordBtn.onclick = alert('change password not yet implemented');
     logoutBtn.onclick = FxAccountsIACHelper.logout(
       onFxAccountStateChange, onFxAccountError);
     // TODO insert bug number tracking this feature
