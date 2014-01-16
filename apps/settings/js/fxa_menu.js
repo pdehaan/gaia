@@ -14,13 +14,21 @@ var FxaMenu = {
     var _ = navigator.mozL10n.get;
     var fxaMenuDesc = document.getElementById('fxa-desc'),
     // get current state and update DOM
-    FxAccountsIACHelper.getAccounts(onFxAccountsData, onFxAccountsError);
+    FxaMenu.refreshState();
+
     // then, observe FxAccountsIACHelper for login, verified, logout events
     // TODO do we need to detach listeners when the settings app is closed?
-    // TODO fix the observer syntax when the gaia code lands 952063
-    FxAccountsIACHelper.on(['onlogin', 'onverified', 'onlogout'],
-                           onFxAccountsData, onFxAccountsError);
+    FxAccountsIACHelper.addEventListener('onlogin', FxaMenu.refreshState);
+    FxAccountsIACHelper.addEventListener('onverifiedlogin',
+      FxaMenu.refreshState);
+    FxAccountsIACHelper.addEventListener('onlogout', FxaMenu.refreshState);
   },
+
+  refreshState: function refreshState() {
+    FxAccountsIACHelper.getAccounts(FxaMenu.onFxAccountsData,
+      FxaMenu.onFxAccountsError);
+  },
+
   // TODO guessing data format is { user: 'foo@bar.com', state: 'verified' }
   // TODO guessing states are 'verified', 'unverified', 'loggedout', and null,
   //      which we treat as 'unknown'
