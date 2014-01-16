@@ -31,13 +31,17 @@ var Accounts = (function account_settings() {
     deleteAccountBtn = document.getElementById('fxa-delete-account');
     loggedInEmail = document.getElementById('fxa-logged-in-email');
 
-    // TODO copy-pasting code from fxa_menu.js (but changing names), refactor.
     FxAccountsIACHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
-    FxAccountsIACHelper.on(['onlogin', 'onverified', 'onlogout'],
-                           onFxAccountStateChange, onFxAccountError);
+    FxAccountsIACHelper.addEventListener('onlogin', refreshState);
+    FxAccountsIACHelper.addEventListener('onverifiedlogin', refreshState);
+    FxAccountsIACHelper.addEventListener('onlogout', refreshState);
   }
 
-  // TODO copy-pasting code from fxa_menu.js (but changing names), refactor.
+  function refreshState() {
+    // TODO throttle or debounce if we are already refreshing state
+    FxAccountsIACHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
+  }
+
   // TODO guessing data format is { user: 'foo@bar.com', state: 'verified' }
   // TODO guessing states are 'verified', 'unverified', 'loggedout', and null,
   //      which we treat as 'unknown'
@@ -71,6 +75,7 @@ var Accounts = (function account_settings() {
       // TODO accountState == 'unknown', display some TBD interstitial state
     }
   }
+
   function onFxAccountError(err) {
     // TODO log error? retry?
   }
@@ -79,11 +84,13 @@ var Accounts = (function account_settings() {
     loginBtn.onclick = null;
     loggedOutPanel.hidden = true;
   }
+
   function showLoggedOutPanel() {
     loginBtn.onclick = FxAccountsIACHelper.openFlow(
       onFxAccountStateChange, onFxAccountError);
     loggedOutPanel.hidden = false;
   }
+
   function hideLoggedInPanel() {
     loggedInPanel.hidden = true;
     loggedInEmail.textContent = '';
@@ -91,39 +98,32 @@ var Accounts = (function account_settings() {
     logoutBtn.onclick = null;
     deleteAccountBtn.onclick = null;
   }
+
   function showLoggedInPanel() {
     // TODO how to escape this text?
     loggedInEmail.textContent = currentUser;
     loggedInPanel.hidden = false;
-    changePasswordBtn.onclick = FxAccountsIACHelper.changePassword(
-      currentUser,
-      onChangePasswordComplete,
-      onChangePasswordError
-    );
+    // TODO insert bug number tracking this feature
+    changePasswordBtn.onclick = alert('change password not yet implemented');
     logoutBtn.onclick = FxAccountsIACHelper.logout(
       onFxAccountStateChange, onFxAccountError);
-    // XXX
+    // TODO insert bug number tracking this feature
     deleteAccountBtn.onclick = alert('delete not yet implemented');
   }
+
   function hideUnverifiedPanel() {
     unverifiedPanel.hidden = true;
     // TODO wire up other elements
   }
+
   function showUnverifiedPanel() {
     unverifiedPanel.hidden = false;
     // TODO wire up other elements
   }
+
   function showSpinner() {
     overlayPanel.hidden = false;
     setTimeout(function() { overlayPanel.hidden = true }, 2000);
-  }
-
-  function onChangePasswordComplete() {
-    // TODO what do we need to do here?
-  }
-
-  function onChangePasswordError(err) {
-    console.error('change password failed: ' + err);
   }
 
   // TODO need to return anything else?
