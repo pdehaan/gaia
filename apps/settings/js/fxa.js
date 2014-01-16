@@ -10,115 +10,112 @@ var Accounts = (function account_settings() {
 
   var loggedOutPanel,
     loggedInPanel,
+    unverifiedPanel,
+    overlayPanel,
     loginBtn,
     changePasswordBtn,
     logoutBtn,
     deleteAccountBtn,
-    loggedInEmail,
-    currentAccount;
-
-  // XXX debugging
-  /*
-  currentAccount = {
-    id: '1234657890',
-    email: 'duderonomy@brobible.com'
-  };
-  */
+    loggedInUser,
+    currentState = 'unknown',
+    currentUser;
 
   function init() {
     loggedOutPanel = document.getElementById('fxa-logged-out');
     loggedInPanel = document.getElementById('fxa-logged-in');
+    unverifiedPanel = document.getElementById('fxa-unverified');
+    overlayPanel = document.getElementById('fxa-overlay');
     loginBtn = document.getElementById('fxa-login');
     changePasswordBtn = document.getElementById('fxa-change-password');
     logoutBtn = document.getElementById('fxa-logout');
     deleteAccountBtn = document.getElementById('fxa-delete-account');
     loggedInEmail = document.getElementById('fxa-logged-in-email');
 
-    currentAccount ? showLoggedInUI() : showLoggedOutUI();
-
-    loadAccountInfo();
+    // TODO copy-pasting code from fxa_menu.js (but changing names), refactor.
+    FxAccountsIACHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
+    FxAccountsIACHelper.on(['onlogin', 'onverified', 'onlogout'],
+                           onFxAccountStateChange, onFxAccountError);
   }
 
-  function loadAccountInfo() {
-    debugger;
-    FxAccountsIACHelper.getAccounts(
-      function _onGetAccounts(data) {
-        debugger;
-        // TODO what's actual response format?
-        currentAccount = data.accounts && data.accounts[0];
-      },
-      function _onGetAccountsErr(err) {
-        // TODO try again once? try with exponential backoff? or just give up?
-        debugger;
-        console.log('fxaccts errored: ' + err); // XXX debugging
-      }
-    );
+  // TODO copy-pasting code from fxa_menu.js (but changing names), refactor.
+  // TODO guessing data format is { user: 'foo@bar.com', state: 'verified' }
+  // TODO guessing states are 'verified', 'unverified', 'loggedout', and null,
+  //      which we treat as 'unknown'
+  function onFxAccountStateChange(data) {
+    // bail if the state is unchanged
+    if (!data && currentState == 'unknown' ||
+        currentState == data.state && currentUser == data.user) {
+      return;
+    }
+
+    // else assign it and update the DOM
+    currentUser = data && data.user;
+    currentState = data && data.state || 'unknown';
+
+    if (currentState == 'verified') {
+      showSpinner();
+      showLoggedInPanel();
+      hideLoggedOutPanel();
+      hideUnverifiedPanel();
+    } else if (currentState == 'unverified') {
+      showSpinner();
+      showUnverifiedPanel();
+      hideLoggedOutPanel();
+      hideLoggedInPanel();
+    } else if (currentState == 'loggedout') {
+      showSpinner();
+      showLoggedOutPanel();
+      hideLoggedInPanel();
+      hideUnverifiedPanel();
+    } else {
+      // TODO accountState == 'unknown', display some TBD interstitial state
+    }
+  }
+  function onFxAccountError(err) {
+    // TODO log error? retry?
   }
 
-  // show logged in implies hide logged out
-  function showLoggedInUI() {
+  function hideLoggedOutPanel() {
     loginBtn.onclick = null;
-
-    loggedInEmail.textContent = currentAccount.email;
-    changePasswordBtn.onclick = onChangePasswordBtnClick;
-    logoutBtn.onclick = onLogoutBtnClick;
-    deleteAccountBtn.onclick = onDeleteAccountBtnClick;
-
-    loggedInPanel.hidden = false;
     loggedOutPanel.hidden = true;
   }
-
-  // show logged out implies hide logged in
-  function showLoggedOutUI() {
-    loginBtn.onclick = onLoginBtnClick;
-
+  function showLoggedOutPanel() {
+    loginBtn.onclick = FxAccountsIACHelper.openFlow(
+      onFxAccountStateChange, onFxAccountError);
+    loggedOutPanel.hidden = false;
+  }
+  function hideLoggedInPanel() {
+    loggedInPanel.hidden = true;
     loggedInEmail.textContent = '';
     changePasswordBtn.onclick = null;
     logoutBtn.onclick = null;
     deleteAccountBtn.onclick = null;
-
-    loggedOutPanel.hidden = false;
-    loggedInPanel.hidden = true;
   }
-
-  function onLoginBtnClick(e) {
-    // TODO disable button on click?
-    FxAccountsIACHelper.openFlow(onLoginComplete, onLoginError);
-  }
-
-  function onLoginComplete(e) {
-    // TODO figure out the *real* user params from evt, this'll probably throw
-    currentAccount = {
-      id: e.data.id,
-      email: e.data.email
-    };
-    showLoggedInUI();
-  }
-
-  function onLoginError(err) {
-    debugger;
-    // re-enable button, if disabled
-  }
-
-  function onLogoutBtnClick(e) {
-    FxAccountsIACHelper.logout(onLogoutComplete, onLogoutError);
-  }
-
-  function onLogoutComplete() {
-    currentAccount = null;
-    showLoggedOutUI();
-  };
-
-  function onLogoutError(err) {
-    console.error('logout failed: ' + err);
-  }
-
-  function onChangePasswordBtnClick(e) {
-    FxAccountsIACHelper.changePassword(
-      currentAccount.id,
+  function showLoggedInPanel() {
+    // TODO how to escape this text?
+    loggedInEmail.textContent = currentUser;
+    loggedInPanel.hidden = false;
+    changePasswordBtn.onclick = FxAccountsIACHelper.changePassword(
+      currentUser,
       onChangePasswordComplete,
       onChangePasswordError
     );
+    logoutBtn.onclick = FxAccountsIACHelper.logout(
+      onFxAccountStateChange, onFxAccountError);
+    // XXX
+    deleteAccountBtn.onclick = alert('delete not yet implemented');
+  }
+  function hideUnverifiedPanel() {
+    unverifiedPanel.hidden = true;
+    // TODO wire up other elements
+  }
+  function showUnverifiedPanel() {
+    unverifiedPanel.hidden = false;
+    // TODO wire up other elements
+  }
+  function showSpinner() {
+    overlayPanel.hidden = false;
+    setTimeout(function() { overlayPanel.hidden = true }, 2000);
   }
 
   function onChangePasswordComplete() {
@@ -127,10 +124,6 @@ var Accounts = (function account_settings() {
 
   function onChangePasswordError(err) {
     console.error('change password failed: ' + err);
-  }
-
-  function onDeleteAccountBtnClick(e) {
-    // delete account not yet implemented
   }
 
   // TODO need to return anything else?
