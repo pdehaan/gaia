@@ -8,8 +8,6 @@
 // getAccounts() error responses are of the form
 //   { error: string, details: object}.
 // --> not sure what the possible error responses are, though.
-// TODO do we want to disable some buttons after clicking?
-// TODO l10n!
 
 'use strict';
 
@@ -41,10 +39,13 @@ var FxaModel = (function fxa_model() {
       state = data.verified ? 'verified' : 'unverified';
       email = data.accountId;
     } else {
+      // TODO if the user is logged out, does getAccounts just return null?
       state = 'loggedout';
       email = null;
     }
 
+    // TODO does observable publish if the state is overwritten but not changed?
+    //      if not, we can remove this check.
     if (fxAccountState.state != state ||
         fxAccountState.email != email) {
       fxAccountState = {
@@ -60,36 +61,38 @@ var FxaModel = (function fxa_model() {
   }
 
   /* Hiding the IAC helper from the views. TODO too much abstraction? */
-  function onLogout(e) {
+  function onLogoutClick(e) {
     FxAccountsIACHelper.logout(onFxAccountStateChange, onFxAccountError);
   }
 
-  function onLogin(e) {
+  function onLoginClick(e) {
     FxAccountsIACHelper.openFlow(onFxAccountStateChange, onFxAccountError);
   }
 
-  // TODO need to return anything else?
+  // use observable so that views can watch the exported fxAccountState param
   return Observable({
     init: init,
     fxAccountState: fxAccountState,
-    onLogout: onLogout,
-    onLogin: onLogin
+    onLogoutClick: onLogoutClick,
+    onLoginClick: onLoginClick
   });
 })();
 
 /**
  * UI code for the firefox accounts menu entry in the settings panel
  */
-
 var FxaMenu = (function fxa_menu() {
   function init(fxaModel) {
     var _ = navigator.mozL10n.get;
-    var fxaMenuDesc = document.getElementById('fxa-desc'),
+    var fxaMenuDesc = document.getElementById('fxa-desc');
 
     // listen for changes
     fxaModel.observe('fxAccountState', onFxAccountStateChange);
+
     // start with whatever state's in the model
     onFxAccountStateChange(fxaModel.fxAccountState);
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
   }
 
   function onFxAccountStateChange(data) {
@@ -108,14 +111,14 @@ var FxaMenu = (function fxa_menu() {
     }
   }
 
-  function onVisibilityChange(e) {
+  function onVisibilityChange() {
     if (document.hidden) {
       fxaModel.unobserve('fxAccountState', onFxAccountStateChange);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     } else {
+      // TODO would this branch ever be executed *after* init has fired?
       fxaModel.observe('fxAccountState', onFxAccountStateChange);
       document.addEventListener('visibilitychange', onVisibilityChange);
-      // when coming visible, always check the current state
       onFxAccountStateChange(fxaModel.fxAccountState);
     }
   }
@@ -131,8 +134,6 @@ var FxaMenu = (function fxa_menu() {
 // TODO do we want to disable some buttons after clicking?
 // TODO how do we get initial state from the model?
 
-'use strict';
-
 var FxaPanel = (function fxa_panel() {
   var loggedOutPanel,
     loggedInPanel,
@@ -141,7 +142,8 @@ var FxaPanel = (function fxa_panel() {
     loginBtn,
     logoutBtn,
     deleteAccountBtn,
-    isVisible;
+    state,
+    email;
 
   function init(fxaModel) {
     loggedOutPanel = document.getElementById('fxa-logged-out');
@@ -155,6 +157,7 @@ var FxaPanel = (function fxa_panel() {
 
     // listen for changes
     fxaModel.observe('fxAccountState', onFxAccountStateChange);
+
     // start with whatever state's in the model
     onFxAccountStateChange(fxaModel.fxAccountState);
 
@@ -172,25 +175,25 @@ var FxaPanel = (function fxa_panel() {
     } else {
       // TODO when would visibility change but !document.hidden?
       document.addEventListener('visibilitychange', onVisibilityChange);
+      fxaModel.observe('fxAccountState', onFxAccountStateChange);
       onFxAccountStateChange(fxaModel.fxAccountState);
     }
 
-  // TODO if not visible, bail.
   function onFxAccountStateChange(data) {
-    var currentState = data.state,
-      currentEmail = data.email;
+    var state = data.state,
+      email = data.email;
 
-    if (currentState == 'verified') {
+    if (state == 'verified') {
       showSpinner();
       showLoggedInPanel();
       hideLoggedOutPanel();
       hideUnverifiedPanel();
-    } else if (currentState == 'unverified') {
+    } else if (state == 'unverified') {
       showSpinner();
       showUnverifiedPanel();
       hideLoggedOutPanel();
       hideLoggedInPanel();
-    } else if (currentState == 'loggedout') {
+    } else if (state == 'loggedout') {
       showSpinner();
       showLoggedOutPanel();
       hideLoggedInPanel();
@@ -206,7 +209,7 @@ var FxaPanel = (function fxa_panel() {
   }
 
   function showLoggedOutPanel() {
-    loginBtn.onclick = FxaModel.onLogin;
+    loginBtn.onclick = FxaModel.onLoginClick;
     loggedOutPanel.hidden = false;
   }
 
@@ -219,10 +222,11 @@ var FxaPanel = (function fxa_panel() {
 
   function showLoggedInPanel() {
     // TODO how to escape this text?
-    loggedInEmail.textContent = currentEmail;
+    loggedInEmail.textContent = email;
     loggedInPanel.hidden = false;
-    logoutBtn.onclick = FxaModel.onLogout;
-    // TODO insert bug number tracking this feature
+    logoutBtn.onclick = FxaModel.onLogoutClick;
+
+    // TODO insert bug number tracking this feature--or better, remove button
     deleteAccountBtn.onclick = alert('delete not yet implemented');
   }
 
@@ -257,7 +261,7 @@ navigator.mozL10n.ready(function onL10nReady() {
   var idleObserver = {
     time: 5,
     onidle: function() {
-      FxaMenu.init();
+      FxaMenu.init(FxaModel);
       navigator.removeIdleObserver(idleObserver);
     }
   };
@@ -265,8 +269,8 @@ navigator.mozL10n.ready(function onL10nReady() {
 
   // don't init the panel until panelready is fired.
   function onPanelReady() {
-    window.removeEventListener('panelready', onPanelReady);
     FxaPanel.init(FxaModel);
+    window.removeEventListener('panelready', onPanelReady);
   }
   window.addEventListener('panelready', onPanelReady);
 });
