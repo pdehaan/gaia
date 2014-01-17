@@ -3,10 +3,11 @@
  * The code for the panel and the main menu item is further down.
  */
 
-// TODO Assuming getAccounts() responses are of the form
-//      user: { id: string, verified: boolean, email: email }
-//      there might be a sessionToken, but I don't need it I think.
-//      --> it is not clear what the logged out response looks like.
+// getAccounts() responses are of the form
+//   { accountId: string, verified: boolean }
+// getAccounts() error responses are of the form
+//   { error: string, details: object}.
+// --> not sure what the possible error responses are, though.
 // TODO do we want to disable some buttons after clicking?
 // TODO l10n!
 
@@ -14,8 +15,8 @@
 
 var FxaModel = (function fxa_model() {
     var fxAccountState = {
-      currentState: 'unknown',
-      currentEmail: null
+      state: 'unknown',
+      email: null
     };
 
   function init() {
@@ -38,13 +39,14 @@ var FxaModel = (function fxa_model() {
       email = null;
     } else if ('verified' in data) {
       state = data.verified ? 'verified' : 'unverified';
-      email = data.email;
+      email = data.accountId;
     } else {
       state = 'loggedout';
       email = null;
     }
 
-    if (currentState != state || currentEmail != email) {
+    if (fxAccountState.state != state ||
+        fxAccountState.email != email) {
       fxAccountState = {
         state: state,
         email: email
