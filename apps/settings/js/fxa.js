@@ -1,5 +1,6 @@
 /**
  * Model code - fetches and holds state, updates the panel/menu as needed.
+ * The code for the panel and the main menu item is further down.
  */
 
 // TODO Assuming getAccounts() responses are of the form
@@ -13,7 +14,9 @@
 
 var Fxa = (function fxa() {
     var currentState = 'unknown',
-      currentEmail;
+      currentEmail,
+      panel,
+      menu;
 
   function init() {
     FxAccountsIACHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
@@ -70,15 +73,30 @@ var Fxa = (function fxa() {
     FxAccountsIACHelper.openFlow(onFxAccountStateChange, onFxAccountError);
   }
 
+  // loosely-couple the panel/menu html and this modelly code. should hopefully
+  // ease testing a bit.
+  // send data to the panel or menu after loading it, so it displays current
+  // state. TODO replace the event-driven model with simple JS pubsub or even
+  // function calls.
+  function registerPanel(p) {
+    panel = p;
+    updateViews(currentState, currentEmail);
+  }
+
+  function registerMenu(m) {
+    menu = m;
+    updateViews(currentState, currentEmail);
+  }
+
   // TODO need to return anything else?
   return {
     init: init,
     onLogout: onLogout,
-    onLogin: onLogin
+    onLogin: onLogin,
+    registerPanel: registerPanel,
+    registerMenu: registerMenu
   };
 })();
-
-navigator.mozL10n.ready(Fxa.init());
 
 
 
@@ -246,4 +264,19 @@ var FxaPanel = (function fxa_panel() {
   };
 
 })();
-navigator.mozL10n.ready(FxaPanel.init());
+
+// TODO hopefully wrapping the initialization in l10nReady gives us an easy
+//      way to unit test these pieces without html involved
+navigator.mozL10n.ready(function onL10nReady() {
+  Fxa.init();
+  FxaMenu.init();
+  Fxa.registerMenu(FxaMenu);
+
+  // don't init the panel until panelready is fired.
+  function onPanelReady() {
+    window.removeEventListener('panelready', onPanelReady);
+    FxaPanel.init();
+    Fxa.registerPanel(FxaPanel);
+  }
+  window.addEventListener('panelready', onPanelReady);
+});
