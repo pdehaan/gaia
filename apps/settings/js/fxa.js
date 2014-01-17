@@ -12,11 +12,11 @@
 
 'use strict';
 
-var Fxa = (function fxa() {
-    var currentState = 'unknown',
-      currentEmail,
-      panel,
-      menu;
+var FxaModel = (function fxa_model() {
+    var fxAccountState = {
+      currentState: 'unknown',
+      currentEmail: null
+    };
 
   function init() {
     FxAccountsIACHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
@@ -45,18 +45,11 @@ var Fxa = (function fxa() {
     }
 
     if (currentState != state || currentEmail != email) {
-      currentState = state;
-      currentEmail = email;
-      updateViews(state, email);
+      fxAccountState = {
+        state: state,
+        email: email
+      };
     }
-  }
-
-  function updateViews(state, email) {
-    var event = new CustomEvent('fxaccountchange', {
-      state: state,
-      email: email
-    });
-    window.dispatchEvent(event);
   }
 
   function onFxAccountError(err) {
@@ -73,49 +66,31 @@ var Fxa = (function fxa() {
     FxAccountsIACHelper.openFlow(onFxAccountStateChange, onFxAccountError);
   }
 
-  // loosely-couple the panel/menu html and this modelly code. should hopefully
-  // ease testing a bit.
-  // send data to the panel or menu after loading it, so it displays current
-  // state. TODO replace the event-driven model with simple JS pubsub or even
-  // function calls.
-  function registerPanel(p) {
-    panel = p;
-    updateViews(currentState, currentEmail);
-  }
-
-  function registerMenu(m) {
-    menu = m;
-    updateViews(currentState, currentEmail);
-  }
-
   // TODO need to return anything else?
-  return {
+  return Observable({
     init: init,
+    fxAccountState: fxAccountState,
     onLogout: onLogout,
-    onLogin: onLogin,
-    registerPanel: registerPanel,
-    registerMenu: registerMenu
-  };
+    onLogin: onLogin
+  });
 })();
-
-
-
-
 
 /**
  * UI code for the firefox accounts menu entry in the settings panel
  */
-// TODO how do we get the initial state from the model?
 
 var FxaMenu = (function fxa_menu() {
-  function init() {
+  function init(fxaModel) {
     var _ = navigator.mozL10n.get;
     var fxaMenuDesc = document.getElementById('fxa-desc'),
 
-    onVisibilityChange();
+    // listen for changes
+    fxaModel.observe('fxAccountState', onFxAccountStateChange);
+    // start with whatever state's in the model
+    onFxAccountStateChange(fxaModel.fxAccountState);
   }
 
-  function onFxaChange(data) {
+  function onFxAccountStateChange(data) {
     var email = data.email,
       state = data.state;
     if (state == 'verified') {
@@ -133,31 +108,19 @@ var FxaMenu = (function fxa_menu() {
 
   function onVisibilityChange(e) {
     if (document.hidden) {
-      window.removeEventListener('fxaccountchange', onFxaChange);
+      fxaModel.unobserve('fxAccountState', onFxAccountStateChange);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     } else {
-      window.addEventListener('fxaccountchange', onFxaChange);
+      fxaModel.observe('fxAccountState', onFxAccountStateChange);
       document.addEventListener('visibilitychange', onVisibilityChange);
+      // when coming visible, always check the current state
+      onFxAccountStateChange(fxaModel.fxAccountState);
     }
   }
 
-  // TODO return things & stuff
+  // TODO return things & stuff?
   return {};
 });
-
-// starting when we get a chance
-navigator.mozL10n.ready(function loadWhenIdle() {
-  var idleObserver = {
-    time: 5,
-    onidle: function() {
-      FxaMenu.init();
-      navigator.removeIdleObserver(idleObserver);
-    }
-  };
-  navigator.addIdleObserver(idleObserver);
-});
-
-
 
 /**
  * UI code for the firefox accounts panel
@@ -178,7 +141,7 @@ var FxaPanel = (function fxa_panel() {
     deleteAccountBtn,
     isVisible;
 
-  function init() {
+  function init(fxaModel) {
     loggedOutPanel = document.getElementById('fxa-logged-out');
     loggedInPanel = document.getElementById('fxa-logged-in');
     unverifiedPanel = document.getElementById('fxa-unverified');
@@ -188,13 +151,32 @@ var FxaPanel = (function fxa_panel() {
     deleteAccountBtn = document.getElementById('fxa-delete-account');
     loggedInEmail = document.getElementById('fxa-logged-in-email');
 
-    window.addEventListener('fxaccountchange', onFxaChange);
+    // listen for changes
+    fxaModel.observe('fxAccountState', onFxAccountStateChange);
+    // start with whatever state's in the model
+    onFxAccountStateChange(fxaModel.fxAccountState);
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
   }
 
+  function onVisibilityChange() {
+    if (document.hidden) {
+      // detach all listeners, settings app is shutting down
+      document.addEventListener('visibilitychange', onVisibilityChange);
+      fxaModel.unobserve('fxAccountState', onFxAccountStateChange);
+      hideLoggedInPanel();
+      hideLoggedOutPanel();
+      hideUnverifiedPanel();
+    } else {
+      // TODO when would visibility change but !document.hidden?
+      document.addEventListener('visibilitychange', onVisibilityChange);
+      onFxAccountStateChange(fxaModel.fxAccountState);
+    }
+
   // TODO if not visible, bail.
-  function onFxaChange(e) {
-    var currentState = e.state,
-      currentEmail = e.email;
+  function onFxAccountStateChange(data) {
+    var currentState = data.state,
+      currentEmail = data.email;
 
     if (currentState == 'verified') {
       showSpinner();
@@ -222,7 +204,7 @@ var FxaPanel = (function fxa_panel() {
   }
 
   function showLoggedOutPanel() {
-    loginBtn.onclick = Fxa.onLogin;
+    loginBtn.onclick = FxaModel.onLogin;
     loggedOutPanel.hidden = false;
   }
 
@@ -237,7 +219,7 @@ var FxaPanel = (function fxa_panel() {
     // TODO how to escape this text?
     loggedInEmail.textContent = currentEmail;
     loggedInPanel.hidden = false;
-    logoutBtn.onclick = Fxa.onLogout;
+    logoutBtn.onclick = FxaModel.onLogout;
     // TODO insert bug number tracking this feature
     deleteAccountBtn.onclick = alert('delete not yet implemented');
   }
@@ -258,7 +240,7 @@ var FxaPanel = (function fxa_panel() {
     setTimeout(function() { overlayPanel.hidden = true }, 2000);
   }
 
-  // TODO need to return anything else?
+  // TODO need to return anything?
   return {
     init: init
   };
@@ -268,15 +250,21 @@ var FxaPanel = (function fxa_panel() {
 // TODO hopefully wrapping the initialization in l10nReady gives us an easy
 //      way to unit test these pieces without html involved
 navigator.mozL10n.ready(function onL10nReady() {
-  Fxa.init();
-  FxaMenu.init();
-  Fxa.registerMenu(FxaMenu);
+  FxaModel.init();
+  // starting when we get a chance
+  var idleObserver = {
+    time: 5,
+    onidle: function() {
+      FxaMenu.init();
+      navigator.removeIdleObserver(idleObserver);
+    }
+  };
+  navigator.addIdleObserver(idleObserver);
 
   // don't init the panel until panelready is fired.
   function onPanelReady() {
     window.removeEventListener('panelready', onPanelReady);
-    FxaPanel.init();
-    Fxa.registerPanel(FxaPanel);
+    FxaPanel.init(FxaModel);
   }
   window.addEventListener('panelready', onPanelReady);
 });
