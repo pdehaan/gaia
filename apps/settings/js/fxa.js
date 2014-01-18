@@ -111,6 +111,7 @@ var FxaMenu = (function fxa_menu() {
     }
   }
 
+  // TODO how to use Settings.currentPanel and 'visibilitychange' properly?
   function onVisibilityChange() {
     if (document.hidden) {
       fxaModel.unobserve('fxAccountState', onFxAccountStateChange);
@@ -164,16 +165,15 @@ var FxaPanel = (function fxa_panel() {
     document.addEventListener('visibilitychange', onVisibilityChange);
   }
 
+  // TODO how to use Settings.currentPanel and 'visibilitychange' properly?
   function onVisibilityChange() {
     if (document.hidden) {
-      // detach all listeners, settings app is shutting down
       document.addEventListener('visibilitychange', onVisibilityChange);
       fxaModel.unobserve('fxAccountState', onFxAccountStateChange);
       hideLoggedInPanel();
       hideLoggedOutPanel();
       hideUnverifiedPanel();
     } else {
-      // TODO when would visibility change but !document.hidden?
       document.addEventListener('visibilitychange', onVisibilityChange);
       fxaModel.observe('fxAccountState', onFxAccountStateChange);
       onFxAccountStateChange(fxaModel.fxAccountState);
