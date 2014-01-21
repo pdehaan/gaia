@@ -2,7 +2,7 @@
 'use strict';
 
 // just use sinon to replace the function bodies
-MockFxAccountsIACHelper = {
+var MockFxAccountsIACHelper = {
     getAccounts: _getAccounts,
     addEventListener: _addEventListener,
     openFlow: _openFlow,
