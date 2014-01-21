@@ -28,77 +28,142 @@ suite('firefox accounts >', function() {
   });
 
   suite('FxaModel', function() {
-  /*
-  - FxaModel
-    - inputs come from MockFxAccountsIACHelper
-    - outputs are passed to the test, which watches the Observable model
-    - on logout event, publishes loggedout Observable state
-    - on login event, publishes loggedin Observable state
-    - on verified event, publishes verified Observable state
-    - if the same event is fired twice (logout fired, logout fired again),
-      ensure that no Observable state change occurs
-      - this lets us avoid unnecessary DOM changes
-    - on error, ... ?
-    - on visibilitychange, ... ?
-  */
-    suiteSetup(function() {});
-    suiteTeardown(function() {});
-    test('stuff', function() {
-      assert.isNotNull('not null');
+    suiteSetup(function() {
+      // init the mock FxAccountsIACHelper
+      // init the model
+      // watch the model's Observable outputs for signals
+    });
+    suiteTeardown(function() {
+      // just for cleanness, we can destroy the model.
+      // but the model should really be scoped to this suite, eh?
+    });
+    test('on loggedout event, should publish Observable logged-out state',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on login event, should publish Observable unverified login state',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on verified event, should publish Observable verified login state',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on loggedout event, then another loggedout event, ' +
+         'should not republish logged-out state',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on error, do something',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on visibilitychange, do the right thing',
+      function(done) { return done(new Error('not implemented yet'));
     });
   });
 
   suite('FxaPanel', function() {
-  /*
-  - FxaPanel
-    - inputs come from passing fake data into onFxAccountStateChange callback
-    - outputs are checking html state?
-    - on login, logout, verified, ensure the right state is shown
-    - on visibilitychange, ensure handlers are detached + DOM hidden?
-    - on visibilitychange back to visible, ensure panel is reactivated
-    - when the state changes, ensure the transition overlay is shown & hidden
-      properly
-  */
-    suiteSetup(function() {});
-    suiteTeardown(function() {});
-    test('stuff', function() {
-      assert.isNotNull('not null');
+    suiteSetup(function() {
+      // init mock FxaModel (just an Observable we control)
+      // init FxaPanel
+      // attach mock html to page, for verifying state change
+    });
+    suiteTeardown(function() {
+      // destroy mock FxaModel
+      // destroy FxaPanel
+      // remove mock html from page
+    });
+    test('when loggedout state is Observed, show the right html',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('when verified login state is Observed, show the right html',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('when unverified login state is Observed, show the right html',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on visibilitychange, document hidden, handlers should be detached',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on visibilitychange, document hidden, DOM should be hidden',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on visibilitychange, document shown, handlers should be reattached',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on visibilitychange, document shown, DOM should be unhidden',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on state change, show transition overlay',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('when transition overlay is shown, ensure it hides itself',
+      function(done) { return done(new Error('not implemented yet'));
     });
   });
 
   suite('FxaMenu', function() {
-  /*
-  - FxaMenu
-    - same as panel, except there's no transition overlay:
-  (pasted from FxaPanel suite comment)
-    - inputs come from passing fake data into onFxAccountStateChange callback
-    - outputs are checking html state?
-    - on login, logout, verified, ensure the right state is shown
-    - on visibilitychange, ensure handlers are detached + DOM hidden?
-    - on visibilitychange back to visible, ensure panel is reactivated
-    - when the state changes, ensure the transition overlay is shown & hidden
-      properly
-  */
-    suiteSetup(function() {});
-    suiteTeardown(function() {});
-    test('stuff', function() {
-      assert.isNotNull('not null');
+    suiteSetup(function() {
+      // init mock FxaModel (just an Observable we control)
+      // init FxaMenu
+      // attach mock html to page, for verifying state change
+    });
+    suiteTeardown(function() {
+      // destroy mock FxaModel
+      // destroy FxaMenu
+      // remove mock html from page
+    });
+    test('when loggedout state is Observed, show the right html',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('when verified login state is Observed, show the right html',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('when unverified login state is Observed, show the right html',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on visibilitychange, document hidden, handlers should be detached',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on visibilitychange, document hidden, DOM should be hidden',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on visibilitychange, document shown, handlers should be reattached',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on visibilitychange, document shown, DOM should be unhidden',
+      function(done) { return done(new Error('not implemented yet'));
     });
   });
 
   suite('Integration tests', function() {
-  /*
-  - integration tests
-    - inputs come from MockFxAccountsIACHelper
-    - outputs are panel and menu html state
-    - on logout, login, verified event, correct html is visible
-    - on visibilitychange, everything's hidden
-    - on visibilitychange again, everything's reactivated
-  */
-    suiteSetup(function() {});
-    suiteTeardown(function() {});
-    test('stuff', function() {
-      assert.isNotNull('not null');
+    suiteSetup(function() {
+      // init mock FxAccountsIACHelper
+      // init FxaModel
+      // add menu and panel html to the page
+      // init FxaPanel
+      // init FxaMenu
+    });
+    suiteTeardown(function() {
+      // destroy mock FxAccountsIACHelper
+      // destroy mock FxaModel
+      // destroy mock FxaMenu
+      // destroy mock FxaPanel
+      // remove mock html from page
+    });
+    test('on logout fxa event, correct panel html is shown',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on logout fxa event, correct menu html is shown',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on verified login fxa event, correct panel html is shown',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on verified login fxa event, correct menu html is shown',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on unverified login fxa event, correct panel html is shown',
+      function(done) { return done(new Error('not implemented yet'));
+    });
+    test('on unverified login fxa event, correct menu html is shown',
+      function(done) { return done(new Error('not implemented yet'));
     });
   });
 });
