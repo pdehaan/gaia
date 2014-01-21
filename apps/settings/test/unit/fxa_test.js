@@ -18,7 +18,7 @@ suite('firefox accounts >', function() {
     suiteSandbox.stub(MockL10n, 'ready');
     // TODO setup mocks in here, or in each test?
     hackedGlobals.FxAccountsIACHelper = FxAccountsIACHelper;
-    FxAccountsIACHelper = sinon.mock(MockFxAccountsIACHelper);
+    FxAccountsIACHelper = sinon.stub(MockFxAccountsIACHelper);
   });
 
   suiteTeardown(function() {
@@ -30,6 +30,54 @@ suite('firefox accounts >', function() {
   suite('FxaModel', function() {
     suiteSetup(function() {
       // init the mock FxAccountsIACHelper
+      FxAccountsIACHelper = (function() {
+        var listeners = {
+          'onlogin': [],
+          'onverifiedlogin': [],
+          'onlogout': []
+        };
+
+        var currentState;
+
+        function getAccounts(cb) {
+          cb.call(null, currentState);
+        };
+
+        function addEventListener(eventType, cb) {
+          if (!eventType in listeners) {
+            throw new Error('tried to add wrong event type');
+          }
+          listeners[eventType].push(cb);
+        };
+
+        function removeEventListener(eventType, cb) {
+          if (!eventType in listeners) {
+            throw new Error('tried to remove wrong event type');
+          }
+          for (var i = 0; i < listeners[eventType].length; i++) {
+            if (cb == listeners[eventType][i]) {
+              listeners.splice(i, 1);
+            }
+          }
+        };
+
+        function fireEvent(eventType) {
+          if (!eventType in listeners)
+            throw new Error('tried to fire wrong event type');
+          }
+
+          for (cb in listeners[eventType]) {
+            cb.call(null, eventType);
+          }
+        }
+
+        return {
+          getAccounts: getAccounts,
+          currentState: currentState,
+          addEventListener: addEventListener,
+          removeEventListener: removeEventListener,
+          fireEvent: fireEvent
+        };
       // init the model
       // watch the model's Observable outputs for signals
     });
@@ -38,7 +86,24 @@ suite('firefox accounts >', function() {
       // but the model should really be scoped to this suite, eh?
     });
     test('on loggedout event, should publish Observable logged-out state',
-      function(done) { return done(new Error('not implemented yet'));
+      function(done) {
+      // TODO figure out how to do this properly with sinon
+      // start with non-logged out state
+      FxAccountsIACHelper.currentState = {
+        accountId: 'foo@mo.co',
+        verified: true
+      };
+      FxaModel.init();
+      FxaModel.observe('fxAccountState', onChange);
+      function onChange() {
+        done(); // TODO yikes callback spaghetti
+      }
+      // fire logout event
+      FxAccountsIACHelper.fireEvent('onlogout');
+      // on next turn, we should have observed.
+      setTimeout(function() {
+        done('should have already finished');
+      }, 0);
     });
     test('on login event, should publish Observable unverified login state',
       function(done) { return done(new Error('not implemented yet'));
