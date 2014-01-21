@@ -3,17 +3,21 @@
  * The code for the panel and the main menu item is further down.
  */
 
-// getAccounts() responses are of the form
-//   { accountId: string, verified: boolean }
+// getAccounts() responses vs account state:
+//   logged in, unverified: { accountId: string, verified: false }
+//   logged in, verified: { accountId: string, verified: true }
+//   logged out *or* no cached state: response is null
+//
 // getAccounts() error responses are of the form
 //   { error: string, details: object}.
-// --> not sure what the possible error responses are, though.
+// --> TODO not sure what the possible error responses are, though.
 
 'use strict';
 
 var FxaModel = (function fxa_model() {
+    // default state is logged out state.
     var fxAccountState = {
-      state: 'unknown',
+      state: 'loggedout',
       email: null
     };
 
@@ -32,14 +36,10 @@ var FxaModel = (function fxa_model() {
 
   function onFxAccountStateChange(data) {
     var state, email;
-    if (!data) {
-      state = 'unknown';
-      email = null;
-    } else if ('verified' in data) {
+    if (data) {
       state = data.verified ? 'verified' : 'unverified';
       email = data.accountId;
     } else {
-      // TODO if the user is logged out, does getAccounts just return null?
       state = 'loggedout';
       email = null;
     }
@@ -103,10 +103,9 @@ var FxaMenu = (function fxa_menu() {
       fxaMenuDesc.text = _('Logged in as ') + email;
     } else if (state == 'unverified') {
       fxaMenuDesc.text = _('Please check your email');
-    } else if (state == 'loggedout') {
-      fxaMenuDesc.text = _('Log in to access your acct.');
-    } else {
-      // state == 'unknown', display nothing
+    } else { /* (state == 'loggedout') */
+      // TODO do we want to upsell fxa? or just leave it blank?
+      // fxaMenuDesc.text = _('Log in to access your acct.');
       fxaMenuDesc.text = '';
     }
   }
@@ -133,7 +132,6 @@ var FxaMenu = (function fxa_menu() {
  *
  */
 // TODO do we want to disable some buttons after clicking?
-// TODO how do we get initial state from the model?
 
 var FxaPanel = (function fxa_panel() {
   var loggedOutPanel,
@@ -193,13 +191,11 @@ var FxaPanel = (function fxa_panel() {
       showUnverifiedPanel();
       hideLoggedOutPanel();
       hideLoggedInPanel();
-    } else if (state == 'loggedout') {
+    } else { /* state == 'loggedout' */
       showSpinner();
       showLoggedOutPanel();
       hideLoggedInPanel();
       hideUnverifiedPanel();
-    } else {
-      // TODO accountState == 'unknown', display some TBD interstitial state
     }
   }
 
