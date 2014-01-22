@@ -21,17 +21,21 @@ var FxaModel = (function fxa_model() {
       email: null
     };
 
-  function init() {
-    FxAccountsIACHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
-    FxAccountsIACHelper.addEventListener('onlogin', refreshState);
-    FxAccountsIACHelper.addEventListener('onverifiedlogin', refreshState);
-    FxAccountsIACHelper.addEventListener('onlogout', refreshState);
+    var fxAccountsIACHelper;
+
+  function init(fxahelper) {
+    // pass in a mock helper for unit testing, fall back to global
+    fxAccountsIACHelper = fxahelper || FxAccountsIACHelper;
+    fxAccountsIACHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
+    fxAccountsIACHelper.addEventListener('onlogin', refreshState);
+    fxAccountsIACHelper.addEventListener('onverifiedlogin', refreshState);
+    fxAccountsIACHelper.addEventListener('onlogout', refreshState);
     // TODO need to remove listeners on document.hidden?
   }
 
   function refreshState() {
     // TODO throttle or debounce if we are already refreshing state
-    FxAccountsIACHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
+    fxAccountsIACHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
   }
 
   function onFxAccountStateChange(data) {
@@ -62,11 +66,11 @@ var FxaModel = (function fxa_model() {
 
   /* Hiding the IAC helper from the views. TODO too much abstraction? */
   function onLogoutClick(e) {
-    FxAccountsIACHelper.logout(onFxAccountStateChange, onFxAccountError);
+    fxAccountsIACHelper.logout(onFxAccountStateChange, onFxAccountError);
   }
 
   function onLoginClick(e) {
-    FxAccountsIACHelper.openFlow(onFxAccountStateChange, onFxAccountError);
+    fxAccountsIACHelper.openFlow(onFxAccountStateChange, onFxAccountError);
   }
 
   // use observable so that views can watch the exported fxAccountState param
