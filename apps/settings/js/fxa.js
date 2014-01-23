@@ -69,10 +69,14 @@ var FxaModel = (function fxa_model() {
 
   /* Hiding the IAC helper from the views. TODO too much abstraction? */
   function onLogoutClick(e) {
+    e.stopPropagation();
+    e.preventDefault();
     fxAccountsIACHelper.logout(onFxAccountStateChange, onFxAccountError);
   }
 
   function onLoginClick(e) {
+    e.stopPropagation();
+    e.preventDefault();
     fxAccountsIACHelper.openFlow(onFxAccountStateChange, onFxAccountError);
   }
 
@@ -106,8 +110,7 @@ var FxaMenu = (function fxa_menu() {
     var email = data.email,
       state = data.state;
     if (state == 'verified') {
-      // TODO escape email
-      fxaMenuDesc.text = _('Logged in as ') + email;
+      fxaMenuDesc.text = _('Logged in as ') + Normalizer.escapeHTML(email);
     } else if (state == 'unverified') {
       fxaMenuDesc.text = _('Please check your email');
     } else { /* (state == 'loggedout') */
@@ -147,25 +150,29 @@ var FxaPanel = (function fxa_panel() {
     overlayPanel,
     loginBtn,
     logoutBtn,
-    deleteAccountBtn,
+    loggedInEmail,
+    unverifiedEmail,
+    _fxaModel,
     state,
     email;
 
   function init(fxaModel) {
+    _fxaModel = fxaModel;
     loggedOutPanel = document.getElementById('fxa-logged-out');
     loggedInPanel = document.getElementById('fxa-logged-in');
     unverifiedPanel = document.getElementById('fxa-unverified');
     overlayPanel = document.getElementById('fxa-overlay');
     loginBtn = document.getElementById('fxa-login');
     logoutBtn = document.getElementById('fxa-logout');
-    deleteAccountBtn = document.getElementById('fxa-delete-account');
     loggedInEmail = document.getElementById('fxa-logged-in-email');
+    unverifiedEmail = document.getElementById('fxa-unverified-email');
 
     // listen for changes
-    fxaModel.observe('fxAccountState', onFxAccountStateChange);
+    _fxaModel.fxAccountState.observe('fxAccountState', onFxAccountStateChange);
 
     // start with whatever state's in the model
-    onFxAccountStateChange(fxaModel.fxAccountState);
+    onFxAccountStateChange(_fxaModel.fxAccountState.fxAccountState);
+    return;
 
     document.addEventListener('visibilitychange', onVisibilityChange);
   }
@@ -174,14 +181,14 @@ var FxaPanel = (function fxa_panel() {
   function onVisibilityChange() {
     if (document.hidden) {
       document.addEventListener('visibilitychange', onVisibilityChange);
-      fxaModel.unobserve('fxAccountState', onFxAccountStateChange);
+      _fxaModel.unobserve('fxAccountState', onFxAccountStateChange);
       hideLoggedInPanel();
       hideLoggedOutPanel();
       hideUnverifiedPanel();
     } else {
       document.addEventListener('visibilitychange', onVisibilityChange);
-      fxaModel.observe('fxAccountState', onFxAccountStateChange);
-      onFxAccountStateChange(fxaModel.fxAccountState);
+      _fxaModel.observe('fxAccountState', onFxAccountStateChange);
+      onFxAccountStateChange(_fxaModel.fxAccountState.fxAccountState);
     }
   };
 
@@ -191,12 +198,12 @@ var FxaPanel = (function fxa_panel() {
 
     if (state == 'verified') {
       showSpinner();
-      showLoggedInPanel();
+      showLoggedInPanel(email);
       hideLoggedOutPanel();
       hideUnverifiedPanel();
     } else if (state == 'unverified') {
       showSpinner();
-      showUnverifiedPanel();
+      showUnverifiedPanel(email);
       hideLoggedOutPanel();
       hideLoggedInPanel();
     } else { /* state == 'loggedout' */
@@ -213,7 +220,7 @@ var FxaPanel = (function fxa_panel() {
   }
 
   function showLoggedOutPanel() {
-    loginBtn.onclick = FxaModel.onLoginClick;
+    loginBtn.onclick = _fxaModel.onLoginClick;
     loggedOutPanel.hidden = false;
   }
 
@@ -221,65 +228,59 @@ var FxaPanel = (function fxa_panel() {
     loggedInPanel.hidden = true;
     loggedInEmail.textContent = '';
     logoutBtn.onclick = null;
-    deleteAccountBtn.onclick = null;
   }
 
-  function showLoggedInPanel() {
+  function showLoggedInPanel(email) {
     // TODO how to escape this text?
-    loggedInEmail.textContent = email;
+    loggedInEmail.textContent = Normalizer.escapeHTML(email);
     loggedInPanel.hidden = false;
-    logoutBtn.onclick = FxaModel.onLogoutClick;
-
-    // TODO insert bug number tracking this feature--or better, remove button
-    deleteAccountBtn.onclick = alert('delete not yet implemented');
+    logoutBtn.onclick = _fxaModel.onLogoutClick;
   }
 
   function hideUnverifiedPanel() {
     unverifiedPanel.hidden = true;
-    // TODO wire up other elements
+    unverifiedEmail.textContent = '';
   }
 
-  function showUnverifiedPanel() {
+  function showUnverifiedPanel(email) {
     unverifiedPanel.hidden = false;
-    // TODO wire up other elements
+    unverifiedEmail.textContent = Normalizer.escapeHTML(email);
   }
 
   // TODO spinner also hides itself. come up with a better name.
   function showSpinner() {
-    overlayPanel.hidden = false;
-    setTimeout(function() { overlayPanel.hidden = true }, 2000);
+    overlayPanel.classList.add('show');
+    setTimeout(function() {
+      overlayPanel.classList.remove('show');
+    }, 200);
   }
 
   // TODO need to return anything?
   return {
-    init: init
+    init: init,
+    showSpinner: showSpinner /* for unit testing */
   };
 
 })();
 
-// if there's no mozL10n at all, we're probably testing; bail.
-// TODO could this ever fail in production?
-//
 // TODO hopefully wrapping the initialization in l10nReady gives us an easy
 //      way to unit test these pieces without html involved
-if (navigator.mozL10n) {
-  navigator.mozL10n.ready(function onL10nReady() {
-    FxaModel.init();
-    // starting when we get a chance
-    var idleObserver = {
-      time: 5,
-      onidle: function() {
-        FxaMenu.init(FxaModel);
-        navigator.removeIdleObserver(idleObserver);
-      }
-    };
-    navigator.addIdleObserver(idleObserver);
-
-    // don't init the panel until panelready is fired.
-    function onPanelReady() {
-      FxaPanel.init(FxaModel);
-      window.removeEventListener('panelready', onPanelReady);
+navigator.mozL10n.ready(function onL10nReady() {
+  FxaModel.init();
+  // starting when we get a chance
+  var idleObserver = {
+    time: 5,
+    onidle: function() {
+      FxaMenu.init(FxaModel);
+      navigator.removeIdleObserver(idleObserver);
     }
-    window.addEventListener('panelready', onPanelReady);
-  });
-}
+  };
+  navigator.addIdleObserver(idleObserver);
+
+  // don't init the panel until panelready is fired.
+  function onPanelReady() {
+    FxaPanel.init(FxaModel);
+    window.removeEventListener('panelready', onPanelReady);
+  }
+  window.addEventListener('panelready', onPanelReady);
+});
