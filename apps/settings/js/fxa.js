@@ -16,10 +16,12 @@
 
 var FxaModel = (function fxa_model() {
     // default state is logged out state.
-    var fxAccountState = {
-      state: 'loggedout',
-      email: null
-    };
+    var _state = Observable({
+      fxAccountState: {
+        state: 'loggedout',
+        email: null
+      }
+    });
 
     var fxAccountsIACHelper;
 
@@ -39,6 +41,7 @@ var FxaModel = (function fxa_model() {
   }
 
   function onFxAccountStateChange(data) {
+    //throw new Error('data is ' + JSON.stringify(data));
     var state, email;
     if (data) {
       state = data.verified ? 'verified' : 'unverified';
@@ -50,9 +53,9 @@ var FxaModel = (function fxa_model() {
 
     // TODO does observable publish if the state is overwritten but not changed?
     //      if not, we can remove this check.
-    if (fxAccountState.state != state ||
-        fxAccountState.email != email) {
-      fxAccountState = {
+    if (_state.fxAccountState.state != state ||
+        _state.fxAccountState.email != email) {
+      _state.fxAccountState = {
         state: state,
         email: email
       };
@@ -74,12 +77,12 @@ var FxaModel = (function fxa_model() {
   }
 
   // use observable so that views can watch the exported fxAccountState param
-  return Observable({
+  return {
     init: init,
-    fxAccountState: fxAccountState,
+    fxAccountState: _state,
     onLogoutClick: onLogoutClick,
     onLoginClick: onLoginClick
-  });
+  };
 })();
 
 /**
@@ -180,6 +183,7 @@ var FxaPanel = (function fxa_panel() {
       fxaModel.observe('fxAccountState', onFxAccountStateChange);
       onFxAccountStateChange(fxaModel.fxAccountState);
     }
+  };
 
   function onFxAccountStateChange(data) {
     var state = data.state,
@@ -253,24 +257,29 @@ var FxaPanel = (function fxa_panel() {
 
 })();
 
+// if there's no mozL10n at all, we're probably testing; bail.
+// TODO could this ever fail in production?
+//
 // TODO hopefully wrapping the initialization in l10nReady gives us an easy
 //      way to unit test these pieces without html involved
-navigator.mozL10n.ready(function onL10nReady() {
-  FxaModel.init();
-  // starting when we get a chance
-  var idleObserver = {
-    time: 5,
-    onidle: function() {
-      FxaMenu.init(FxaModel);
-      navigator.removeIdleObserver(idleObserver);
-    }
-  };
-  navigator.addIdleObserver(idleObserver);
+if (navigator.mozL10n) {
+  navigator.mozL10n.ready(function onL10nReady() {
+    FxaModel.init();
+    // starting when we get a chance
+    var idleObserver = {
+      time: 5,
+      onidle: function() {
+        FxaMenu.init(FxaModel);
+        navigator.removeIdleObserver(idleObserver);
+      }
+    };
+    navigator.addIdleObserver(idleObserver);
 
-  // don't init the panel until panelready is fired.
-  function onPanelReady() {
-    FxaPanel.init(FxaModel);
-    window.removeEventListener('panelready', onPanelReady);
-  }
-  window.addEventListener('panelready', onPanelReady);
-});
+    // don't init the panel until panelready is fired.
+    function onPanelReady() {
+      FxaPanel.init(FxaModel);
+      window.removeEventListener('panelready', onPanelReady);
+    }
+    window.addEventListener('panelready', onPanelReady);
+  });
+}
