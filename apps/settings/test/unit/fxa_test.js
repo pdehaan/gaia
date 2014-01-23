@@ -26,6 +26,7 @@ suite('firefox accounts >', function() {
   suite('FxaModel', function() {
     suiteSetup(function() {
       // init the model
+      FxaModel.init(MockFxAccountsIACHelper);
       // watch the model's Observable outputs for signals
     });
     suiteTeardown(function() {
@@ -33,10 +34,7 @@ suite('firefox accounts >', function() {
       // but the model should really be scoped to this suite, eh?
     });
     test('on verifiedlogin, should publish verified state', function(done) {
-      FxaModel.init(MockFxAccountsIACHelper);
       function modelStateTestCallback(newVal, oldVal) {
-        assert.equal('loggedout', oldVal.state);
-        assert.equal(null, oldVal.email);
         assert.equal('verified', newVal.state);
         assert.equal('foo@bar.com', newVal.email);
         FxaModel.fxAccountState.unobserve('fxAccountState',
@@ -52,14 +50,35 @@ suite('firefox accounts >', function() {
       MockFxAccountsIACHelper.fireEvent('onverifiedlogin');
     });
     test('on login event, should publish Observable unverified login state',
-      function(done) { return done(new Error('not implemented yet'));
+      function(done) {
+      function unverifiedCallback(newVal, oldVal) {
+        assert.equal('unverified', newVal.state);
+        assert.equal('baz@quux.com', newVal.email);
+        FxaModel.fxAccountState.unobserve('fxAccountState',
+          unverifiedCallback);
+        done();
+      };
+      FxaModel.fxAccountState.observe('fxAccountState', unverifiedCallback);
+
+      MockFxAccountsIACHelper.setCurrentState({
+        accountId: 'baz@quux.com',
+        verified: false
+      });
+      MockFxAccountsIACHelper.fireEvent('onlogin');
     });
-    test('on verified event, should publish Observable verified login state',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    test('on loggedout event, then another loggedout event, ' +
-         'should not republish logged-out state',
-      function(done) { return done(new Error('not implemented yet'));
+    test('on logout event, should publish Observable logged-out state',
+      function(done) {
+      function loggedoutCallback(newVal, oldVal) {
+        assert.equal('loggedout', newVal.state);
+        assert.equal(null, newVal.email);
+        FxaModel.fxAccountState.unobserve('fxAccountState',
+          loggedoutCallback);
+        done();
+      };
+      FxaModel.fxAccountState.observe('fxAccountState', loggedoutCallback);
+
+      MockFxAccountsIACHelper.setCurrentState(null);
+      MockFxAccountsIACHelper.fireEvent('onlogout');
     });
     test('on error, do something',
       function(done) { return done(new Error('not implemented yet'));
