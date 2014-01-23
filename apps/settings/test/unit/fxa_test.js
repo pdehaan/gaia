@@ -1,8 +1,8 @@
 'use strict';
 
-mocha.globals(['Settings', 'FxAccountsIACHelper']);
+mocha.globals(['Settings', 'MockFxAccountsIACHelper']);
 requireApp('settings/test/unit/mock_l10n.js');
-require('../../shared/js/fxa_iac_client.js');
+requireApp('settings/js/mvvm/models.js');
 require('mock_fx_accounts_iac_helper.js');
 requireApp('settings/js/fxa.js');
 
@@ -16,68 +16,15 @@ suite('firefox accounts >', function() {
     //      because we use that stanza to do dependency injection?
     navigator.mozL10n = MockL10n;
     suiteSandbox.stub(MockL10n, 'ready');
-    // TODO setup mocks in here, or in each test?
-    hackedGlobals.FxAccountsIACHelper = FxAccountsIACHelper;
-    FxAccountsIACHelper = sinon.stub(MockFxAccountsIACHelper);
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = hackedGlobals.mozL10n;
-    FxAccountsIACHelper = hackedGlobals.FxAccountsIACHelper;
     suiteSandbox.restore();
   });
 
   suite('FxaModel', function() {
     suiteSetup(function() {
-      // init the mock FxAccountsIACHelper
-      FxAccountsIACHelper = (function() {
-        var listeners = {
-          'onlogin': [],
-          'onverifiedlogin': [],
-          'onlogout': []
-        };
-
-        var currentState;
-
-        function getAccounts(cb) {
-          cb.call(null, currentState);
-        };
-
-        function addEventListener(eventType, cb) {
-          if (!eventType in listeners) {
-            throw new Error('tried to add wrong event type');
-          }
-          listeners[eventType].push(cb);
-        };
-
-        function removeEventListener(eventType, cb) {
-          if (!eventType in listeners) {
-            throw new Error('tried to remove wrong event type');
-          }
-          for (var i = 0; i < listeners[eventType].length; i++) {
-            if (cb == listeners[eventType][i]) {
-              listeners.splice(i, 1);
-            }
-          }
-        };
-
-        function fireEvent(eventType) {
-          if (!eventType in listeners)
-            throw new Error('tried to fire wrong event type');
-          }
-
-          for (cb in listeners[eventType]) {
-            cb.call(null, eventType);
-          }
-        }
-
-        return {
-          getAccounts: getAccounts,
-          currentState: currentState,
-          addEventListener: addEventListener,
-          removeEventListener: removeEventListener,
-          fireEvent: fireEvent
-        };
       // init the model
       // watch the model's Observable outputs for signals
     });
@@ -85,25 +32,24 @@ suite('firefox accounts >', function() {
       // just for cleanness, we can destroy the model.
       // but the model should really be scoped to this suite, eh?
     });
-    test('on loggedout event, should publish Observable logged-out state',
-      function(done) {
-      // TODO figure out how to do this properly with sinon
-      // start with non-logged out state
-      FxAccountsIACHelper.currentState = {
-        accountId: 'foo@mo.co',
-        verified: true
+    test('on verifiedlogin, should publish verified state', function(done) {
+      FxaModel.init(MockFxAccountsIACHelper);
+      function modelStateTestCallback(newVal, oldVal) {
+        assert.equal('loggedout', oldVal.state);
+        assert.equal(null, oldVal.email);
+        assert.equal('verified', newVal.state);
+        assert.equal('foo@bar.com', newVal.email);
+        FxaModel.fxAccountState.unobserve('fxAccountState',
+          modelStateTestCallback);
+        done();
       };
-      FxaModel.init();
-      FxaModel.observe('fxAccountState', onChange);
-      function onChange() {
-        done(); // TODO yikes callback spaghetti
-      }
-      // fire logout event
-      FxAccountsIACHelper.fireEvent('onlogout');
-      // on next turn, we should have observed.
-      setTimeout(function() {
-        done('should have already finished');
-      }, 0);
+      FxaModel.fxAccountState.observe('fxAccountState', modelStateTestCallback);
+
+      MockFxAccountsIACHelper.setCurrentState({
+        accountId: 'foo@bar.com',
+        verified: true
+      });
+      MockFxAccountsIACHelper.fireEvent('onverifiedlogin');
     });
     test('on login event, should publish Observable unverified login state',
       function(done) { return done(new Error('not implemented yet'));
