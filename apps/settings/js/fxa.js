@@ -1,18 +1,36 @@
 /* global Normalizer, Observable, FxAccountsIACHelper */
 
-/**
- * Model code - fetches and holds state, updates the panel/menu as needed.
- * The code for the panel and the main menu item is further down.
- */
-
-// getAccounts() responses vs account state:
-//   logged in, unverified: { accountId: string, verified: false }
-//   logged in, verified: { accountId: string, verified: true }
-//   logged out *or* no cached state: response is null
+// Firefox Accounts settings app
 //
-// getAccounts() error responses are of the form
-//   { error: string, details: object}.
-// --> TODO not sure what the possible error responses are, though.
+// Firefox Accounts overview: https://wiki.mozilla.org/Identity/Firefox_Accounts
+//
+// This file contains three components:
+//   * FxaModel: receives updates from gecko via FxAccountsIACHelper, which
+//     is found in /shared/js/fxa_iac_helper.js
+//   * FxaMenu is the menu item in the main settings index.html page
+//   * FxaPanel is the Firefox Accounts panel (elements/fxa.html)
+//
+// The model communicates changes to the menu and panel using the Observable
+// behavior defined in settings/js/mvvm/models.js.
+//
+//   * The Model translates the Helper signals into one of three Model states:
+//     (helper output --> model state)
+//     * user is logged in and their email has been verified:
+//       {accountId: <string> email, verified: <boolean> true} -->
+//         {state: 'verified', email: email}
+//     * user is logged in, but their email is unverified:
+//       {accountId: <string> email, verified: <boolean> false} -->
+//         {state: 'unverified', email: email}
+//     * user is logged out *or* the gecko layer has an empty cache:
+//       null -->
+//         {state: 'loggedout', email: null}
+//
+//   * The Model state is parsed by the views, which then update themselves.
+//
+// TODO We know the Helper error responses are of the form:
+//        {error: string errorMessage, details: object errorDetails}
+//      It is not clear what the possible error responses are, but we're
+//      working on it (bug 963411).
 
 'use strict';
 
@@ -28,7 +46,7 @@ var FxaModel = (function fxa_model() {
   var fxAccountsIACHelper;
 
   function init(fxahelper) {
-    // pass in a mock helper for unit testing, fall back to global
+    // pass in a mock helper for unit testing, or fall back to global
     fxAccountsIACHelper = fxahelper || FxAccountsIACHelper;
     fxAccountsIACHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
     fxAccountsIACHelper.addEventListener('onlogin', refreshState);
@@ -42,7 +60,6 @@ var FxaModel = (function fxa_model() {
   }
 
   function onFxAccountStateChange(data) {
-    //throw new Error('data is ' + JSON.stringify(data));
     var state, email;
     if (data) {
       state = data.verified ? 'verified' : 'unverified';
@@ -84,16 +101,14 @@ var FxaModel = (function fxa_model() {
     fxAccountsIACHelper.openFlow(onFxAccountStateChange, onFxAccountError);
   }
 
-  // use observable so that views can watch the exported fxAccountState param
+  // The Observable function strips out functions, so we had to first create
+  // the observable, and here we append function properties to it.
   _state.init = init;
   _state.onLogoutClick = onLogoutClick;
   _state.onLoginClick = onLoginClick;
   return _state;
 })();
 
-/**
- * UI code for the firefox accounts menu entry in the settings panel
- */
 var FxaMenu = (function fxa_menu() {
   var _,
     _fxaModel,
@@ -140,11 +155,7 @@ var FxaMenu = (function fxa_menu() {
   };
 })();
 
-/**
- * UI code for the firefox accounts panel
- */
-// TODO do we want to disable some buttons after clicking?
-
+// TODO do we want to throttle/disable some buttons after clicking?
 var FxaPanel = (function fxa_panel() {
   var loggedOutPanel,
     loggedInPanel,
@@ -256,7 +267,8 @@ var FxaPanel = (function fxa_panel() {
 
 // TODO idea: wrapping initialization in mozL10n.ready so that we can avoid
 //      connecting the object graph in unit tests (by never firing the ready
-//      callback, and wiring up mocks manually instead)
+//      callback, and wiring up mocks manually instead). Not convinced this is
+//      the best way.
 navigator.mozL10n.ready(function onL10nReady() {
   FxaModel.init();
   // starting when we get a chance
