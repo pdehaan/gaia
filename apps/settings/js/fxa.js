@@ -1,3 +1,5 @@
+/* global Normalizer, Observable, FxAccountsIACHelper */
+
 /**
  * Model code - fetches and holds state, updates the panel/menu as needed.
  * The code for the panel and the main menu item is further down.
@@ -156,9 +158,7 @@ var FxaPanel = (function fxa_panel() {
     logoutBtn,
     loggedInEmail,
     unverifiedEmail,
-    _fxaModel,
-    state,
-    email;
+    _fxaModel;
 
   function init(fxaModel) {
     _fxaModel = fxaModel;
@@ -193,7 +193,7 @@ var FxaPanel = (function fxa_panel() {
       _fxaModel.observe('fxAccountState', onFxAccountStateChange);
       onFxAccountStateChange(_fxaModel.fxAccountState);
     }
-  };
+  }
 
   function onFxAccountStateChange(data) {
     var state = data.state,

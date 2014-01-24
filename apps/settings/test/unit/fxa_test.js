@@ -1,10 +1,17 @@
+/* globals loadBodyHTML, Observable, MockL10n, MockFxAccountsIACHelper,
+  HtmlImports, FxaModel, FxaPanel, FxaMenu */
+
 'use strict';
 
 mocha.globals([
-  'Settings',
   'loadBodyHTML',
+  'Observable',
+  'MockL10n',
   'MockFxAccountsIACHelper',
-  'Normalizer'
+  'HtmlImports',
+  'FxaModel',
+  'FxaPanel',
+  'FxaMenu'
 ]);
 require('/shared/js/text_normalizer.js');
 require('/shared/test/unit/load_body_html_helper.js');
@@ -29,7 +36,7 @@ suite('firefox accounts >', function() {
 
   suiteTeardown(function() {
     window.navigator.mozL10n = hackedGlobals.mozL10n;
-//    suiteSandbox.restore();
+    suiteSandbox.restore();
   });
 
   suite('FxaModel', function() {
@@ -49,7 +56,7 @@ suite('firefox accounts >', function() {
         FxaModel.unobserve('fxAccountState',
           modelStateTestCallback);
         done();
-      };
+      }
       FxaModel.observe('fxAccountState', modelStateTestCallback);
 
       MockFxAccountsIACHelper.setCurrentState({
@@ -66,7 +73,7 @@ suite('firefox accounts >', function() {
         FxaModel.unobserve('fxAccountState',
           unverifiedCallback);
         done();
-      };
+      }
       FxaModel.observe('fxAccountState', unverifiedCallback);
 
       MockFxAccountsIACHelper.setCurrentState({
@@ -83,7 +90,7 @@ suite('firefox accounts >', function() {
         FxaModel.unobserve('fxAccountState',
           loggedoutCallback);
         done();
-      };
+      }
       FxaModel.observe('fxAccountState', loggedoutCallback);
 
       MockFxAccountsIACHelper.setCurrentState(null);
@@ -103,9 +110,6 @@ suite('firefox accounts >', function() {
     var mockFxaModel;
 
     suiteSetup(function(done) {
-      // attach mock html to page, for verifying state change
-      loadBodyHTML('/index.html');
-
       // init mock FxaModel (just an Observable we control)
       mockFxaModel = Observable({
         fxAccountState: {
