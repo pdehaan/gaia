@@ -100,9 +100,6 @@ suite('firefox accounts >', function() {
     test('on error, do something',
       function(done) { return done(new Error('not implemented yet'));
     });
-    test('on visibilitychange, do the right thing',
-      function(done) { return done(new Error('not implemented yet'));
-    });
 */
   });
 
@@ -178,23 +175,6 @@ suite('firefox accounts >', function() {
         assert.equal('un@verified.com',
           document.getElementById('fxa-unverified-email').textContent);
     });
-/*
-    test('on visibilitychange, document hidden, handlers should be detached',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    test('on visibilitychange, document hidden, DOM should be hidden',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    test('on visibilitychange, document shown, handlers should be reattached',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    test('on visibilitychange, document shown, DOM should be unhidden',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    test('on state change, show transition overlay',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-*/
     test('when transition overlay is shown, ensure it hides itself',
       function() {
         var clock = sinon.useFakeTimers();
@@ -275,56 +255,6 @@ suite('firefox accounts >', function() {
       };
       assert.equal(fxaDescEl.textContent, 'Please check your email');
     });
-    /*
-    test('on visibilitychange, document hidden, handlers should be detached',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    test('on visibilitychange, document hidden, DOM should be hidden',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    test('on visibilitychange, document shown, handlers should be reattached',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    test('on visibilitychange, document shown, DOM should be unhidden',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    */
   });
 
-  suite('Integration tests', function() {
-    suiteSetup(function() {
-      // init mock FxAccountsIACHelper
-      // init FxaModel
-      // add menu and panel html to the page
-      // init FxaPanel
-      // init FxaMenu
-    });
-    suiteTeardown(function() {
-      // destroy mock FxAccountsIACHelper
-      // destroy mock FxaModel
-      // destroy mock FxaMenu
-      // destroy mock FxaPanel
-      // remove mock html from page
-    });
-    /*
-    test('on logout fxa event, correct panel html is shown',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    test('on logout fxa event, correct menu html is shown',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    test('on verified login fxa event, correct panel html is shown',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    test('on verified login fxa event, correct menu html is shown',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    test('on unverified login fxa event, correct panel html is shown',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    test('on unverified login fxa event, correct menu html is shown',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-    */
-  });
 });
