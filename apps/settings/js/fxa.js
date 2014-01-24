@@ -34,7 +34,6 @@ var FxaModel = (function fxa_model() {
     fxAccountsIACHelper.addEventListener('onlogin', refreshState);
     fxAccountsIACHelper.addEventListener('onverifiedlogin', refreshState);
     fxAccountsIACHelper.addEventListener('onlogout', refreshState);
-    // TODO need to remove listeners on document.hidden?
   }
 
   function refreshState() {
@@ -127,14 +126,11 @@ var FxaMenu = (function fxa_menu() {
     }
   }
 
-  // TODO how to use Settings.currentPanel and 'visibilitychange' properly?
   function onVisibilityChange() {
     if (document.hidden) {
       _fxaModel.unobserve('fxAccountState', onFxAccountStateChange);
-      document.removeEventListener('visibilitychange', onVisibilityChange);
     } else {
       _fxaModel.observe('fxAccountState', onFxAccountStateChange);
-      document.addEventListener('visibilitychange', onVisibilityChange);
       onFxAccountStateChange(_fxaModel.fxAccountState);
     }
   }
@@ -180,16 +176,10 @@ var FxaPanel = (function fxa_panel() {
     document.addEventListener('visibilitychange', onVisibilityChange);
   }
 
-  // TODO how to use Settings.currentPanel and 'visibilitychange' properly?
   function onVisibilityChange() {
     if (document.hidden) {
-      document.addEventListener('visibilitychange', onVisibilityChange);
       _fxaModel.unobserve('fxAccountState', onFxAccountStateChange);
-      hideLoggedInPanel();
-      hideLoggedOutPanel();
-      hideUnverifiedPanel();
     } else {
-      document.addEventListener('visibilitychange', onVisibilityChange);
       _fxaModel.observe('fxAccountState', onFxAccountStateChange);
       onFxAccountStateChange(_fxaModel.fxAccountState);
     }
