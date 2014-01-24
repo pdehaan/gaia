@@ -81,27 +81,30 @@ var FxaModel = (function fxa_model() {
   }
 
   // use observable so that views can watch the exported fxAccountState param
-  return {
-    init: init,
-    fxAccountState: _state,
-    onLogoutClick: onLogoutClick,
-    onLoginClick: onLoginClick
-  };
+  _state.init = init;
+  _state.onLogoutClick = onLogoutClick;
+  _state.onLoginClick = onLoginClick;
+  return _state;
 })();
 
 /**
  * UI code for the firefox accounts menu entry in the settings panel
  */
 var FxaMenu = (function fxa_menu() {
+  var _,
+    _fxaModel,
+    fxaMenuDesc;
   function init(fxaModel) {
-    var _ = navigator.mozL10n.get;
-    var fxaMenuDesc = document.getElementById('fxa-desc');
+    _ = navigator.mozL10n.get;
+    fxaMenuDesc = document.getElementById('fxa-desc');
+    _fxaModel = fxaModel;
 
     // listen for changes
-    fxaModel.observe('fxAccountState', onFxAccountStateChange);
+    _fxaModel.observe('fxAccountState',
+      onFxAccountStateChange);
 
     // start with whatever state's in the model
-    onFxAccountStateChange(fxaModel.fxAccountState);
+    onFxAccountStateChange(_fxaModel.fxAccountState);
 
     document.addEventListener('visibilitychange', onVisibilityChange);
   }
@@ -110,32 +113,35 @@ var FxaMenu = (function fxa_menu() {
     var email = data.email,
       state = data.state;
     if (state == 'verified') {
-      fxaMenuDesc.text = _('Logged in as ') + Normalizer.escapeHTML(email);
+      fxaMenuDesc.textContent = _('Logged in as ') +
+        Normalizer.escapeHTML(email);
     } else if (state == 'unverified') {
-      fxaMenuDesc.text = _('Please check your email');
+      fxaMenuDesc.textContent = _('Please check your email');
     } else { /* (state == 'loggedout') */
       // TODO do we want to upsell fxa? or just leave it blank?
       // fxaMenuDesc.text = _('Log in to access your acct.');
-      fxaMenuDesc.text = '';
+      fxaMenuDesc.textContent = '';
     }
   }
 
   // TODO how to use Settings.currentPanel and 'visibilitychange' properly?
   function onVisibilityChange() {
     if (document.hidden) {
-      fxaModel.unobserve('fxAccountState', onFxAccountStateChange);
+      _fxaModel.unobserve('fxAccountState',
+        onFxAccountStateChange);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     } else {
-      // TODO would this branch ever be executed *after* init has fired?
-      fxaModel.observe('fxAccountState', onFxAccountStateChange);
+      _fxaModel.observe('fxAccountState',
+        onFxAccountStateChange);
       document.addEventListener('visibilitychange', onVisibilityChange);
-      onFxAccountStateChange(fxaModel.fxAccountState);
+      onFxAccountStateChange(_fxaModel.fxAccountState);
     }
   }
 
-  // TODO return things & stuff?
-  return {};
-});
+  return {
+    init: init
+  };
+})();
 
 /**
  * UI code for the firefox accounts panel
@@ -168,10 +174,10 @@ var FxaPanel = (function fxa_panel() {
     unverifiedEmail = document.getElementById('fxa-unverified-email');
 
     // listen for changes
-    _fxaModel.fxAccountState.observe('fxAccountState', onFxAccountStateChange);
+    _fxaModel.observe('fxAccountState', onFxAccountStateChange);
 
     // start with whatever state's in the model
-    onFxAccountStateChange(_fxaModel.fxAccountState.fxAccountState);
+    onFxAccountStateChange(_fxaModel.fxAccountState);
     return;
 
     document.addEventListener('visibilitychange', onVisibilityChange);
@@ -188,7 +194,7 @@ var FxaPanel = (function fxa_panel() {
     } else {
       document.addEventListener('visibilitychange', onVisibilityChange);
       _fxaModel.observe('fxAccountState', onFxAccountStateChange);
-      onFxAccountStateChange(_fxaModel.fxAccountState.fxAccountState);
+      onFxAccountStateChange(_fxaModel.fxAccountState);
     }
   };
 

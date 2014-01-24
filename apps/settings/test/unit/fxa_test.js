@@ -23,12 +23,12 @@ suite('firefox accounts >', function() {
     // TODO I think we don't actually want l10n to fire?
     //      because we use that stanza to do dependency injection?
     hackedGlobals.mozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    window.navigator.mozL10n = MockL10n;
 //    suiteSandbox.stub(MockL10n, 'ready');
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = hackedGlobals.mozL10n;
+    window.navigator.mozL10n = hackedGlobals.mozL10n;
 //    suiteSandbox.restore();
   });
 
@@ -46,11 +46,11 @@ suite('firefox accounts >', function() {
       function modelStateTestCallback(newVal, oldVal) {
         assert.equal('verified', newVal.state);
         assert.equal('foo@bar.com', newVal.email);
-        FxaModel.fxAccountState.unobserve('fxAccountState',
+        FxaModel.unobserve('fxAccountState',
           modelStateTestCallback);
         done();
       };
-      FxaModel.fxAccountState.observe('fxAccountState', modelStateTestCallback);
+      FxaModel.observe('fxAccountState', modelStateTestCallback);
 
       MockFxAccountsIACHelper.setCurrentState({
         accountId: 'foo@bar.com',
@@ -63,11 +63,11 @@ suite('firefox accounts >', function() {
       function unverifiedCallback(newVal, oldVal) {
         assert.equal('unverified', newVal.state);
         assert.equal('baz@quux.com', newVal.email);
-        FxaModel.fxAccountState.unobserve('fxAccountState',
+        FxaModel.unobserve('fxAccountState',
           unverifiedCallback);
         done();
       };
-      FxaModel.fxAccountState.observe('fxAccountState', unverifiedCallback);
+      FxaModel.observe('fxAccountState', unverifiedCallback);
 
       MockFxAccountsIACHelper.setCurrentState({
         accountId: 'baz@quux.com',
@@ -80,11 +80,11 @@ suite('firefox accounts >', function() {
       function loggedoutCallback(newVal, oldVal) {
         assert.equal('loggedout', newVal.state);
         assert.equal(null, newVal.email);
-        FxaModel.fxAccountState.unobserve('fxAccountState',
+        FxaModel.unobserve('fxAccountState',
           loggedoutCallback);
         done();
       };
-      FxaModel.fxAccountState.observe('fxAccountState', loggedoutCallback);
+      FxaModel.observe('fxAccountState', loggedoutCallback);
 
       MockFxAccountsIACHelper.setCurrentState(null);
       MockFxAccountsIACHelper.fireEvent('onlogout');
@@ -102,35 +102,20 @@ suite('firefox accounts >', function() {
   suite('FxaPanel', function() {
     var mockFxaModel;
 
-    suiteSetup(function() {
-      // init mock FxaModel (just an Observable we control)
+    suiteSetup(function(done) {
       // attach mock html to page, for verifying state change
       loadBodyHTML('/index.html');
 
-      /// init FxaPanel
-      //requireElements('settings/elements/fxa.html');
-
-      //testSupport.template('settings/elements/fxa.html');
-      //throw new Error(document.getElementById('fxa-overlay'))
-      // init FxaPanel
-    });
-    suiteTeardown(function() {
-      // destroy mock FxaModel
-      // destroy FxaPanel
-      // remove mock html from page
-    });
-    test('setup panel', function(done) {
       // init mock FxaModel (just an Observable we control)
-      mockFxaModel = {
-        onLoginClick: function() {},
-        onLogoutClick: function() {},
-        fxAccountState: Observable({
-          fxAccountState: {
-            state: 'loggedout',
-            email: 'asdf@jkl.com'
-          }
-        })
-      };
+      mockFxaModel = Observable({
+        fxAccountState: {
+          state: 'loggedout',
+          email: 'asdf@jkl.com'
+        }
+      });
+      mockFxaModel.onLoginClick = function onLoginClick() {};
+      mockFxaModel.onLogoutClick = function onLogoutClick() {};
+
       // attach mock html to page, for verifying state change:
       // first, load settings app
       loadBodyHTML('/index.html');
@@ -148,11 +133,15 @@ suite('firefox accounts >', function() {
         FxaPanel.init(mockFxaModel);
         done();
       });
-
+    });
+    suiteTeardown(function() {
+      // destroy mock FxaModel
+      // destroy FxaPanel
+      // remove mock html from page
     });
     test('when loggedout state is Observed, show the right html', function() {
         // updating the Observable should auto-update the Panel
-        mockFxaModel.fxAccountState.fxAccountState = {
+        mockFxaModel.fxAccountState = {
           state: 'loggedout',
           email: null
         };
@@ -163,7 +152,7 @@ suite('firefox accounts >', function() {
     });
     test('when verified login state is Observed, show the right html',
       function() {
-        mockFxaModel.fxAccountState.fxAccountState = {
+        mockFxaModel.fxAccountState = {
           state: 'verified',
           email: 'ver@ified.com'
         };
@@ -175,7 +164,7 @@ suite('firefox accounts >', function() {
     });
     test('when unverified login state is Observed, show the right html',
       function() {
-        mockFxaModel.fxAccountState.fxAccountState = {
+        mockFxaModel.fxAccountState = {
           state: 'unverified',
           email: 'un@verified.com'
         };
@@ -185,7 +174,7 @@ suite('firefox accounts >', function() {
         assert.equal('un@verified.com',
           document.getElementById('fxa-unverified-email').textContent);
     });
-    /*
+/*
     test('on visibilitychange, document hidden, handlers should be detached',
       function(done) { return done(new Error('not implemented yet'));
     });
@@ -201,7 +190,7 @@ suite('firefox accounts >', function() {
     test('on state change, show transition overlay',
       function(done) { return done(new Error('not implemented yet'));
     });
-    */
+*/
     test('when transition overlay is shown, ensure it hides itself',
       function() {
         var clock = sinon.useFakeTimers();
@@ -225,26 +214,64 @@ suite('firefox accounts >', function() {
   });
 
   suite('FxaMenu', function() {
+    // TODO some copypasta from FxaPanel suite setup. extract/dry up.
+    var mockFxaModel,
+      fxaDescEl;
+
     suiteSetup(function() {
       // init mock FxaModel (just an Observable we control)
+      mockFxaModel = Observable({
+        fxAccountState: {
+          state: 'loggedout',
+          email: 'asdf@jkl.com'
+        }
+      });
+      mockFxaModel.onLoginClick = function onLoginClick() {};
+      mockFxaModel.onLogoutClick = function onLogoutClick() {};
+
+      // attach mock html to page, for verifying state change:
+      // for the menu, we only need the settings app
+      loadBodyHTML('/index.html');
+
+      // double-check panel is ready
+      fxaDescEl = document.getElementById('fxa-desc');
+      if (!fxaDescEl) {
+        throw new Error('failed to load settings page html');
+      }
       // init FxaMenu
-      // attach mock html to page, for verifying state change
+      FxaMenu.init(mockFxaModel);
     });
     suiteTeardown(function() {
       // destroy mock FxaModel
       // destroy FxaMenu
       // remove mock html from page
     });
-    /*
     test('when loggedout state is Observed, show the right html',
-      function(done) { return done(new Error('not implemented yet'));
+      function() {
+      // updating the Observable should auto-update the Panel
+      mockFxaModel.fxAccountState = {
+        state: 'loggedout',
+        email: null
+      };
+      assert.equal(fxaDescEl.textContent, '');
     });
     test('when verified login state is Observed, show the right html',
-      function(done) { return done(new Error('not implemented yet'));
+      function() {
+      mockFxaModel.fxAccountState = {
+        state: 'verified',
+        email: 'ver@ified.com'
+      };
+      assert.equal(fxaDescEl.textContent, 'Logged in as ver@ified.com');
     });
     test('when unverified login state is Observed, show the right html',
-      function(done) { return done(new Error('not implemented yet'));
+      function() {
+      mockFxaModel.fxAccountState = {
+        state: 'unverified',
+        email: 'un@verified.com'
+      };
+      assert.equal(fxaDescEl.textContent, 'Please check your email');
     });
+    /*
     test('on visibilitychange, document hidden, handlers should be detached',
       function(done) { return done(new Error('not implemented yet'));
     });
