@@ -94,14 +94,14 @@ var FxaMenu = (function fxa_menu() {
   var _,
     _fxaModel,
     fxaMenuDesc;
+
   function init(fxaModel) {
     _ = navigator.mozL10n.get;
     fxaMenuDesc = document.getElementById('fxa-desc');
     _fxaModel = fxaModel;
 
     // listen for changes
-    _fxaModel.observe('fxAccountState',
-      onFxAccountStateChange);
+    _fxaModel.observe('fxAccountState', onFxAccountStateChange);
 
     // start with whatever state's in the model
     onFxAccountStateChange(_fxaModel.fxAccountState);
@@ -127,12 +127,10 @@ var FxaMenu = (function fxa_menu() {
   // TODO how to use Settings.currentPanel and 'visibilitychange' properly?
   function onVisibilityChange() {
     if (document.hidden) {
-      _fxaModel.unobserve('fxAccountState',
-        onFxAccountStateChange);
+      _fxaModel.unobserve('fxAccountState', onFxAccountStateChange);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     } else {
-      _fxaModel.observe('fxAccountState',
-        onFxAccountStateChange);
+      _fxaModel.observe('fxAccountState', onFxAccountStateChange);
       document.addEventListener('visibilitychange', onVisibilityChange);
       onFxAccountStateChange(_fxaModel.fxAccountState);
     }
@@ -178,7 +176,6 @@ var FxaPanel = (function fxa_panel() {
 
     // start with whatever state's in the model
     onFxAccountStateChange(_fxaModel.fxAccountState);
-    return;
 
     document.addEventListener('visibilitychange', onVisibilityChange);
   }
