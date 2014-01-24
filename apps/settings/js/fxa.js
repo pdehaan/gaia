@@ -15,15 +15,15 @@
 'use strict';
 
 var FxaModel = (function fxa_model() {
-    // default state is logged out state.
-    var _state = Observable({
-      fxAccountState: {
-        state: 'loggedout',
-        email: null
-      }
-    });
+  // default state is logged out state.
+  var _state = Observable({
+    fxAccountState: {
+      state: 'loggedout',
+      email: null
+    }
+  });
 
-    var fxAccountsIACHelper;
+  var fxAccountsIACHelper;
 
   function init(fxahelper) {
     // pass in a mock helper for unit testing, fall back to global
@@ -51,8 +51,10 @@ var FxaModel = (function fxa_model() {
       email = null;
     }
 
-    // TODO does observable publish if the state is overwritten but not changed?
-    //      if not, we can remove this check.
+    // don't bother writing out the state and notifying observers unless we've
+    // got some new data. Observable should dedupe this for us, but I don't
+    // want to depend on Observable doing a deep comparison. If we fire updates
+    // for no reason, we'll have state -> spinner -> same state, no good.
     if (_state.fxAccountState.state != state ||
         _state.fxAccountState.email != email) {
       _state.fxAccountState = {
@@ -67,7 +69,8 @@ var FxaModel = (function fxa_model() {
     // TODO maybe show overlay with error?
   }
 
-  /* Hiding the IAC helper from the views. TODO too much abstraction? */
+  // Hiding the FxAccountsIACHelper from the views
+  // A bit funny to put the click handlers in here, but it works for now
   function onLogoutClick(e) {
     e.stopPropagation();
     e.preventDefault();
@@ -93,11 +96,11 @@ var FxaModel = (function fxa_model() {
 var FxaMenu = (function fxa_menu() {
   var _,
     _fxaModel,
-    fxaMenuDesc;
+    menuDesc;
 
   function init(fxaModel) {
     _ = navigator.mozL10n.get;
-    fxaMenuDesc = document.getElementById('fxa-desc');
+    menuDesc = document.getElementById('fxa-desc');
     _fxaModel = fxaModel;
 
     // listen for changes
@@ -112,15 +115,13 @@ var FxaMenu = (function fxa_menu() {
   function onFxAccountStateChange(data) {
     var email = data.email,
       state = data.state;
+
     if (state == 'verified') {
-      fxaMenuDesc.textContent = _('Logged in as ') +
-        Normalizer.escapeHTML(email);
+      menuDesc.textContent = _('Logged in as ') + Normalizer.escapeHTML(email);
     } else if (state == 'unverified') {
-      fxaMenuDesc.textContent = _('Please check your email');
-    } else { /* (state == 'loggedout') */
-      // TODO do we want to upsell fxa? or just leave it blank?
-      // fxaMenuDesc.text = _('Log in to access your acct.');
-      fxaMenuDesc.textContent = '';
+      menuDesc.textContent = _('Please check your email');
+    } else { /* state == 'loggedout' */
+      menuDesc.textContent = '';
     }
   }
 
@@ -143,7 +144,6 @@ var FxaMenu = (function fxa_menu() {
 
 /**
  * UI code for the firefox accounts panel
- *
  */
 // TODO do we want to disable some buttons after clicking?
 
@@ -234,7 +234,6 @@ var FxaPanel = (function fxa_panel() {
   }
 
   function showLoggedInPanel(email) {
-    // TODO how to escape this text?
     loggedInEmail.textContent = Normalizer.escapeHTML(email);
     loggedInPanel.hidden = false;
     logoutBtn.onclick = _fxaModel.onLogoutClick;
@@ -258,16 +257,16 @@ var FxaPanel = (function fxa_panel() {
     }, 200);
   }
 
-  // TODO need to return anything?
   return {
     init: init,
-    showSpinner: showSpinner /* for unit testing */
+    showSpinner: showSpinner /* exposed for unit testing */
   };
 
 })();
 
-// TODO hopefully wrapping the initialization in l10nReady gives us an easy
-//      way to unit test these pieces without html involved
+// TODO idea: wrapping initialization in mozL10n.ready so that we can avoid
+//      connecting the object graph in unit tests (by never firing the ready
+//      callback, and wiring up mocks manually instead)
 navigator.mozL10n.ready(function onL10nReady() {
   FxaModel.init();
   // starting when we get a chance
