@@ -96,11 +96,6 @@ suite('firefox accounts >', function() {
       MockFxAccountsIACHelper.setCurrentState(null);
       MockFxAccountsIACHelper.fireEvent('onlogout');
     });
-    /*
-    test('on error, do something',
-      function(done) { return done(new Error('not implemented yet'));
-    });
-*/
   });
 
   suite('FxaPanel', function() {
