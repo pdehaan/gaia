@@ -1,3 +1,4 @@
+/* exported MockFxAccountsIACHelper */
 
 'use strict';
 
@@ -12,17 +13,17 @@ var MockFxAccountsIACHelper = (function() {
 
   function getAccounts(cb) {
     cb(currentState);
-  };
+  }
 
   function addEventListener(eventType, cb) {
-    if (!eventType in listeners) {
+    if (!(eventType in listeners)) {
       throw new Error('tried to add wrong event type');
     }
     listeners[eventType].push(cb);
-  };
+  }
 
   function removeEventListener(eventType, cb) {
-    if (!eventType in listeners) {
+    if (!(eventType in listeners)) {
       throw new Error('tried to remove wrong event type');
     }
     for (var i = 0; i < listeners[eventType].length; i++) {
@@ -30,25 +31,25 @@ var MockFxAccountsIACHelper = (function() {
         listeners.splice(i, 1);
       }
     }
-  };
+  }
 
   function fireEvent(eventType) {
-    if (!eventType in listeners) {
+    if (!(eventType in listeners)) {
       throw new Error('tried to fire wrong event type');
     }
 
     for (var i = 0; i < listeners[eventType].length; i++) {
       listeners[eventType][i](eventType);
     }
-  };
+  }
 
   function setCurrentState(x) {
     currentState = x;
-  };
+  }
 
   function getCurrentState() {
     return currentState;
-  };
+  }
 
   return {
     getAccounts: getAccounts,
