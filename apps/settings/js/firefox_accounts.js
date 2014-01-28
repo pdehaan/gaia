@@ -28,10 +28,10 @@
  *
  *   * The Model state is parsed by the views, which then update themselves.
  *
- * TODO We know the Helper error responses are of the form:
- *        {error: string errorMessage, details: object errorDetails}
- *      It is not clear what the possible error responses are, but we're
- *      working on it (bug 963411).
+ * We know the Helper error responses are of the form:
+ *   {error: string errorMessage, details: object errorDetails}
+ * For now, we just console.error them.
+ * TODO Bug 964899 tracks work to generate & prioritize error handling UX.
  */
 
 'use strict';
@@ -85,8 +85,7 @@ var FxaModel = (function fxa_model() {
   }
 
   function onFxAccountError(err) {
-    console.error(err.msg);
-    // TODO maybe show overlay with error?
+    console.error('Error getting Firefox Account: ' + err.error);
   }
 
   // Hiding the FxAccountsIACHelper from the views
