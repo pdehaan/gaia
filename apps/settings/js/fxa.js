@@ -1,36 +1,38 @@
 /* global Normalizer, Observable, FxAccountsIACHelper */
 
-// Firefox Accounts settings app
-//
-// Firefox Accounts overview: https://wiki.mozilla.org/Identity/Firefox_Accounts
-//
-// This file contains three components:
-//   * FxaModel: receives updates from gecko via FxAccountsIACHelper, which
-//     is found in /shared/js/fxa_iac_helper.js
-//   * FxaMenu is the menu item in the main settings index.html page
-//   * FxaPanel is the Firefox Accounts panel (elements/fxa.html)
-//
-// The model communicates changes to the menu and panel using the Observable
-// behavior defined in settings/js/mvvm/models.js.
-//
-//   * The Model translates the Helper signals into one of three Model states:
-//     (helper output --> model state)
-//     * user is logged in and their email has been verified:
-//       {accountId: <string> email, verified: <boolean> true} -->
-//         {state: 'verified', email: email}
-//     * user is logged in, but their email is unverified:
-//       {accountId: <string> email, verified: <boolean> false} -->
-//         {state: 'unverified', email: email}
-//     * user is logged out *or* the gecko layer has an empty cache:
-//       null -->
-//         {state: 'loggedout', email: null}
-//
-//   * The Model state is parsed by the views, which then update themselves.
-//
-// TODO We know the Helper error responses are of the form:
-//        {error: string errorMessage, details: object errorDetails}
-//      It is not clear what the possible error responses are, but we're
-//      working on it (bug 963411).
+/**
+ * Firefox Accounts settings app
+ *
+ * Firefox Accounts overview: https://wiki.mozilla.org/Identity/Firefox_Accounts
+ *
+ * This file contains three components:
+ *   * FxaModel: receives updates from gecko via FxAccountsIACHelper, which
+ *     is found in /shared/js/fxa_iac_helper.js
+ *   * FxaMenu is the menu item in the main settings index.html page
+ *   * FxaPanel is the Firefox Accounts panel (elements/fxa.html)
+ *
+ * The model communicates changes to the menu and panel using the Observable
+ * behavior defined in settings/js/mvvm/models.js.
+ *
+ *   * The Model translates the Helper signals into one of three Model states:
+ *     (helper output --> model state)
+ *     * user is logged in and their email has been verified:
+ *       {accountId: <string> email, verified: <boolean> true} -->
+ *         {state: 'verified', email: email}
+ *     * user is logged in, but their email is unverified:
+ *       {accountId: <string> email, verified: <boolean> false} -->
+ *         {state: 'unverified', email: email}
+ *     * user is logged out *or* the gecko layer has an empty cache:
+ *       null -->
+ *         {state: 'loggedout', email: null}
+ *
+ *   * The Model state is parsed by the views, which then update themselves.
+ *
+ * TODO We know the Helper error responses are of the form:
+ *        {error: string errorMessage, details: object errorDetails}
+ *      It is not clear what the possible error responses are, but we're
+ *      working on it (bug 963411).
+ */
 
 'use strict';
 
@@ -136,7 +138,7 @@ var FxaMenu = (function fxa_menu() {
       menuDesc.textContent = _('Logged in as ') + Normalizer.escapeHTML(email);
     } else if (state == 'unverified') {
       menuDesc.textContent = _('Please check your email');
-    } else { /* state == 'loggedout' */
+    } else { // state == 'loggedout'
       menuDesc.textContent = '';
     }
   }
@@ -210,7 +212,7 @@ var FxaPanel = (function fxa_panel() {
       showUnverifiedPanel(email);
       hideLoggedOutPanel();
       hideLoggedInPanel();
-    } else { /* state == 'loggedout' */
+    } else { // state == 'loggedout'
       showSpinner();
       showLoggedOutPanel();
       hideLoggedInPanel();
@@ -260,7 +262,7 @@ var FxaPanel = (function fxa_panel() {
 
   return {
     init: init,
-    showSpinner: showSpinner /* exposed for unit testing */
+    showSpinner: showSpinner // exposed for unit testing
   };
 
 })();
