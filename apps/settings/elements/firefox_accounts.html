@@ -30,8 +30,8 @@
       </header>
       <ul>
         <li>
-          <p class="fxa-description">
-            <span data-l10n-id="fxa-verification-email-sent">We've sent an email to: <span id="fxa-unverified-email" class="fxa-email">fooo@barrrr.com</span>
+          <p data-l10n-id="fxa-verification-email-sent" id="fxa-unverified-text" class="fxa-description">
+            We've sent an email to: <em>foo@bar.com</em>
           </p>
           <p class="fxa-description">
             <span data-l10n-id="fxa-please-confirm">Please confirm your account by clicking the link in your email.</span>
@@ -54,10 +54,9 @@
         Marketplace and Where's my Fox.
             </span>
           </p>
-          <p class="fxa-description">
-            <span data-l10n-id="fxa-logged-in-text">
-              Logged in as <span id="fxa-logged-in-email" class="fxa-email">sergi@telenordigital.com</span>
-            </span>
+          <!-- TODO can we reuse data-l10n-ids? -->
+          <p data-l10n-id="fxa-logged-in-text" id="fxa-logged-in-text" class="fxa-description">
+            Logged in as <em>foo@bar.com</em>
           </p>
         </li>
       </ul>

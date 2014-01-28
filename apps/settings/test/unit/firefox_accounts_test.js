@@ -112,6 +112,7 @@ suite('firefox accounts >', function() {
       mockFxaModel.onLoginClick = function onLoginClick() {};
       mockFxaModel.onLogoutClick = function onLogoutClick() {};
 
+      // watch the locali
       // attach mock html to page, for verifying state change:
       // first, load settings app
       loadBodyHTML('/index.html');
@@ -148,6 +149,7 @@ suite('firefox accounts >', function() {
     });
     test('when verified login state is Observed, show the right html',
       function() {
+        var localizeSpy = sinon.spy(navigator.mozL10n, 'localize');
         mockFxaModel.fxAccountState = {
           state: 'verified',
           email: 'ver@ified.com'
@@ -155,11 +157,17 @@ suite('firefox accounts >', function() {
         assert.isTrue(document.getElementById('fxa-logged-out').hidden);
         assert.isTrue(document.getElementById('fxa-unverified').hidden);
         assert.isFalse(document.getElementById('fxa-logged-in').hidden);
-        assert.equal('ver@ified.com',
-          document.getElementById('fxa-logged-in-email').textContent);
+        // test localize was called with correct args
+        assert.deepEqual(localizeSpy.args[0], [
+          document.getElementById('fxa-logged-in'),
+          'fxa-logged-in-text',
+          { email: '<em>ver@ified.com</em>' }
+        ]);
+        navigator.mozL10n.localize.restore();
     });
     test('when unverified login state is Observed, show the right html',
       function() {
+        var localizeSpy = sinon.spy(navigator.mozL10n, 'localize');
         mockFxaModel.fxAccountState = {
           state: 'unverified',
           email: 'un@verified.com'
@@ -167,8 +175,12 @@ suite('firefox accounts >', function() {
         assert.isTrue(document.getElementById('fxa-logged-out').hidden);
         assert.isFalse(document.getElementById('fxa-unverified').hidden);
         assert.isTrue(document.getElementById('fxa-logged-in').hidden);
-        assert.equal('un@verified.com',
-          document.getElementById('fxa-unverified-email').textContent);
+        assert.deepEqual(localizeSpy.args[0], [
+          document.getElementById('fxa-unverified-text'),
+          'fxa-verification-email-sent',
+          { email: '<em>un@verified.com</em>' }
+        ]);
+        navigator.mozL10n.localize.restore();
     });
     test('when transition overlay is shown, ensure it hides itself',
       function() {
@@ -236,19 +248,30 @@ suite('firefox accounts >', function() {
     });
     test('when verified login state is Observed, show the right html',
       function() {
+      var localizeSpy = sinon.spy(navigator.mozL10n, 'localize');
       mockFxaModel.fxAccountState = {
         state: 'verified',
         email: 'ver@ified.com'
       };
-      assert.equal(fxaDescEl.textContent, 'Logged in as ver@ified.com');
+      assert.deepEqual(localizeSpy.args[0], [
+        fxaDescEl,
+        'fxa-logged-in-text',
+        { email: 'ver@ified.com' }
+      ]);
+      navigator.mozL10n.localize.restore();
     });
     test('when unverified login state is Observed, show the right html',
       function() {
+      var localizeSpy = sinon.spy(navigator.mozL10n, 'localize');
       mockFxaModel.fxAccountState = {
         state: 'unverified',
         email: 'un@verified.com'
       };
-      assert.equal(fxaDescEl.textContent, 'Please check your email');
+      assert.deepEqual(localizeSpy.args[0], [
+        fxaDescEl,
+        'fxa-check-email'
+      ]);
+      navigator.mozL10n.localize.restore();
     });
   });
 

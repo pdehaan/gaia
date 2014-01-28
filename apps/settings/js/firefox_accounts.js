@@ -111,12 +111,10 @@ var FxaModel = (function fxa_model() {
 })();
 
 var FxaMenu = (function fxa_menu() {
-  var _,
-    _fxaModel,
+  var _fxaModel,
     menuDesc;
 
   function init(fxaModel) {
-    _ = navigator.mozL10n.get;
     menuDesc = document.getElementById('fxa-desc');
     _fxaModel = fxaModel;
 
@@ -134,9 +132,11 @@ var FxaMenu = (function fxa_menu() {
       state = data.state;
 
     if (state == 'verified') {
-      menuDesc.textContent = _('Logged in as ') + Normalizer.escapeHTML(email);
+      navigator.mozL10n.localize(menuDesc, 'fxa-logged-in-text', {
+        email: Normalizer.escapeHTML(email)
+      });
     } else if (state == 'unverified') {
-      menuDesc.textContent = _('Please check your email');
+      navigator.mozL10n.localize(menuDesc, 'fxa-check-email');
     } else { // state == 'loggedout'
       menuDesc.textContent = '';
     }
@@ -176,8 +176,9 @@ var FxaPanel = (function fxa_panel() {
     overlayPanel = document.getElementById('fxa-overlay');
     loginBtn = document.getElementById('fxa-login');
     logoutBtn = document.getElementById('fxa-logout');
-    loggedInEmail = document.getElementById('fxa-logged-in-email');
-    unverifiedEmail = document.getElementById('fxa-unverified-email');
+    // TODO this name sucks. fix as part of html refactor pass.
+    loggedInEmail = document.getElementById('fxa-logged-in-text');
+    unverifiedEmail = document.getElementById('fxa-unverified-text');
 
     // listen for changes
     _fxaModel.observe('fxAccountState', onFxAccountStateChange);
@@ -199,7 +200,7 @@ var FxaPanel = (function fxa_panel() {
 
   function onFxAccountStateChange(data) {
     var state = data.state,
-      email = data.email;
+      email = Normalizer.escapeHTML(data.email);
 
     if (state == 'verified') {
       showSpinner();
@@ -236,7 +237,9 @@ var FxaPanel = (function fxa_panel() {
   }
 
   function showLoggedInPanel(email) {
-    loggedInEmail.textContent = Normalizer.escapeHTML(email);
+    navigator.mozL10n.localize(loggedInEmail, 'fxa-logged-in-text', {
+      email: '<em>' + email + '</em>'
+    });
     loggedInPanel.hidden = false;
     logoutBtn.onclick = _fxaModel.onLogoutClick;
   }
@@ -248,7 +251,9 @@ var FxaPanel = (function fxa_panel() {
 
   function showUnverifiedPanel(email) {
     unverifiedPanel.hidden = false;
-    unverifiedEmail.textContent = Normalizer.escapeHTML(email);
+    navigator.mozL10n.localize(unverifiedEmail, 'fxa-verification-email-sent', {
+      email: '<em>' + email + '</em>'
+    });
   }
 
   // TODO spinner also hides itself. come up with a better name.
