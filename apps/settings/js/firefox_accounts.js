@@ -9,7 +9,7 @@
  *   * FxaModel: receives updates from gecko via FxAccountsIACHelper, which
  *     is found in /shared/js/fxa_iac_helper.js
  *   * FxaMenu is the menu item in the main settings index.html page
- *   * FxaPanel is the Firefox Accounts panel (elements/fxa.html)
+ *   * FxaPanel is the Firefox Accounts panel (elements/firefox_accounts.html)
  *
  * The model communicates changes to the menu and panel using the Observable
  * behavior defined in settings/js/mvvm/models.js.

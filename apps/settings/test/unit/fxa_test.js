@@ -118,7 +118,7 @@ suite('firefox accounts >', function() {
       // next, insert fxa panel into page
       var importHook = document.createElement('link');
       importHook.setAttribute('rel', 'import');
-      importHook.setAttribute('href', '/elements/fxa.html');
+      importHook.setAttribute('href', '/elements/firefox_accounts.html');
       document.head.appendChild(importHook);
       HtmlImports.populate(function onDOMReady() {
         // double-check panel is ready
