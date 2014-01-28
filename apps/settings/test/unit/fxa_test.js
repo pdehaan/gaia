@@ -20,7 +20,7 @@ require('/shared/js/html_imports.js');
 require('mock_fx_accounts_iac_helper.js');
 requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/js/mvvm/models.js');
-requireApp('settings/js/fxa.js');
+requireApp('settings/js/firefox_accounts.js');
 
 suite('firefox accounts >', function() {
   var suiteSandbox = sinon.sandbox.create(),
