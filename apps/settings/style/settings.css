@@ -656,6 +656,7 @@ section[role="status"] {
 
 section[role="status"].toast-visible {
   opacity: 1;
+}
 
 /******************************************************************************
  * Firefox Accounts
