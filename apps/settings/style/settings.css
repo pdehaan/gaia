@@ -659,26 +659,6 @@ section[role="status"].toast-visible {
 }
 
 /******************************************************************************
- * Firefox Accounts
- */
-#fxa-delete-account {
-  border-radius: 0.3rem;
-  background-color: darkred;
-  color: #fff;
-  border: none;
-  text-shadow: none;
-}
-
-.fxa-description {
-  font-size: 1.4rem;
-  white-space: normal;
-}
-
-.fxa-email {
-  text-decoration: underline;
-}
-
-/******************************************************************************
  * Right-To-Left layout
  */
 
@@ -789,7 +769,11 @@ html[dir="rtl"] #feedback-sad {
   float: left;
 }
 
-/* TODO copy-pasting from fxa system app */
+/******************************************************************************
+ * Firefox Accounts
+ */
+
+/* TODO is there a UI library overlay somewhere in /shared? */
 #fxa-overlay {
   display: none;
   width: 100%;
