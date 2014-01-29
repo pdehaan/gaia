@@ -24,14 +24,26 @@ requireApp('settings/js/firefox_accounts.js');
 
 suite('firefox accounts >', function() {
   var suiteSandbox = sinon.sandbox.create(),
-    hackedGlobals = {};
+    hackedGlobals = {},
+    mockFxaModel;
 
   suiteSetup(function() {
-    // TODO I think we don't actually want l10n to fire?
-    //      because we use that stanza to do dependency injection?
+    // Note: we don't actually want l10n to fire, because the l10n onready
+    // stanza is where we wire up the object graph. Don't fire l10n ready,
+    // instead inject test dependencies manually.
     hackedGlobals.mozL10n = navigator.mozL10n;
     window.navigator.mozL10n = MockL10n;
-//    suiteSandbox.stub(MockL10n, 'ready');
+
+    // init mock FxaModel (just an Observable we control)
+    // this is used for the FxaPanel and FxaMenu tests
+    mockFxaModel = Observable({
+      fxAccountState: {
+        state: 'loggedout',
+        email: 'asdf@jkl.com'
+      }
+    });
+    mockFxaModel.onLoginClick = function onLoginClick() {};
+    mockFxaModel.onLogoutClick = function onLogoutClick() {};
   });
 
   suiteTeardown(function() {
@@ -46,8 +58,7 @@ suite('firefox accounts >', function() {
       // watch the model's Observable outputs for signals
     });
     suiteTeardown(function() {
-      // just for cleanness, we can destroy the model.
-      // but the model should really be scoped to this suite, eh?
+      // TODO should we teardown / recreate the model across tests?
     });
     test('on verifiedlogin, should publish verified state', function(done) {
       function modelStateTestCallback(newVal, oldVal) {
@@ -99,20 +110,11 @@ suite('firefox accounts >', function() {
   });
 
   suite('FxaPanel', function() {
-    var mockFxaModel;
+    var loggedOutScreen,
+      unverifiedScreen,
+      loggedInScreen;
 
     suiteSetup(function(done) {
-      // init mock FxaModel (just an Observable we control)
-      mockFxaModel = Observable({
-        fxAccountState: {
-          state: 'loggedout',
-          email: 'asdf@jkl.com'
-        }
-      });
-      mockFxaModel.onLoginClick = function onLoginClick() {};
-      mockFxaModel.onLogoutClick = function onLogoutClick() {};
-
-      // watch the locali
       // attach mock html to page, for verifying state change:
       // first, load settings app
       loadBodyHTML('/index.html');
@@ -128,13 +130,15 @@ suite('firefox accounts >', function() {
         }
         // init FxaPanel
         FxaPanel.init(mockFxaModel);
+        // grab pointers to useful elements
+        loggedOutScreen = document.getElementById('fxa-logged-out');
+        unverifiedScreen = document.getElementById('fxa-unverified');
+        loggedInScreen = document.getElementById('fxa-logged-in');
         done();
       });
     });
     suiteTeardown(function() {
-      // destroy mock FxaModel
-      // destroy FxaPanel
-      // remove mock html from page
+      // TODO: should we try to destroy FxaPanel? remove mock html from page?
     });
     test('when loggedout state is Observed, show the right html', function() {
         // updating the Observable should auto-update the Panel
@@ -143,9 +147,9 @@ suite('firefox accounts >', function() {
           email: null
         };
         // check that logged-out state is shown
-        assert.isFalse(document.getElementById('fxa-logged-out').hidden);
-        assert.isTrue(document.getElementById('fxa-unverified').hidden);
-        assert.isTrue(document.getElementById('fxa-logged-in').hidden);
+        assert.isFalse(loggedOutScreen.hidden);
+        assert.isTrue(unverifiedScreen.hidden);
+        assert.isTrue(loggedInScreen.hidden);
     });
     test('when verified login state is Observed, show the right html',
       function() {
@@ -154,9 +158,9 @@ suite('firefox accounts >', function() {
           state: 'verified',
           email: 'ver@ified.com'
         };
-        assert.isTrue(document.getElementById('fxa-logged-out').hidden);
-        assert.isTrue(document.getElementById('fxa-unverified').hidden);
-        assert.isFalse(document.getElementById('fxa-logged-in').hidden);
+        assert.isTrue(loggedOutScreen.hidden);
+        assert.isTrue(unverifiedScreen.hidden);
+        assert.isFalse(loggedInScreen.hidden);
         // test localize was called with correct args
         assert.deepEqual(localizeSpy.args[0], [
           document.getElementById('fxa-logged-in'),
@@ -172,9 +176,9 @@ suite('firefox accounts >', function() {
           state: 'unverified',
           email: 'un@verified.com'
         };
-        assert.isTrue(document.getElementById('fxa-logged-out').hidden);
-        assert.isFalse(document.getElementById('fxa-unverified').hidden);
-        assert.isTrue(document.getElementById('fxa-logged-in').hidden);
+        assert.isTrue(loggedOutScreen.hidden);
+        assert.isFalse(unverifiedScreen.hidden);
+        assert.isTrue(loggedInScreen.hidden);
         assert.deepEqual(localizeSpy.args[0], [
           document.getElementById('fxa-unverified-text'),
           'fxa-verification-email-sent',
@@ -205,41 +209,28 @@ suite('firefox accounts >', function() {
   });
 
   suite('FxaMenu', function() {
-    // TODO some copypasta from FxaPanel suite setup. extract/dry up.
-    var mockFxaModel,
-      fxaDescEl;
+    var fxaDescEl;
 
     suiteSetup(function() {
-      // init mock FxaModel (just an Observable we control)
-      mockFxaModel = Observable({
-        fxAccountState: {
-          state: 'loggedout',
-          email: 'asdf@jkl.com'
-        }
-      });
-      mockFxaModel.onLoginClick = function onLoginClick() {};
-      mockFxaModel.onLogoutClick = function onLogoutClick() {};
-
       // attach mock html to page, for verifying state change:
-      // for the menu, we only need the settings app
+      // for the menu item, we only need the settings app
       loadBodyHTML('/index.html');
 
-      // double-check panel is ready
+      // double-check the html is ready
       fxaDescEl = document.getElementById('fxa-desc');
       if (!fxaDescEl) {
         throw new Error('failed to load settings page html');
       }
+
       // init FxaMenu
       FxaMenu.init(mockFxaModel);
     });
     suiteTeardown(function() {
-      // destroy mock FxaModel
-      // destroy FxaMenu
-      // remove mock html from page
+      // TODO destroy FxaMenu? remove mock html from page?
     });
     test('when loggedout state is Observed, show the right html',
       function() {
-      // updating the Observable should auto-update the Panel
+      // updating the Observable should auto-update the Menu
       mockFxaModel.fxAccountState = {
         state: 'loggedout',
         email: null
@@ -253,7 +244,7 @@ suite('firefox accounts >', function() {
         state: 'verified',
         email: 'ver@ified.com'
       };
-      assert.deepEqual(localizeSpy.args[0], [
+      assert.deepEqual(localizeSpy.args[1], [
         fxaDescEl,
         'fxa-logged-in-text',
         { email: 'ver@ified.com' }
@@ -267,7 +258,7 @@ suite('firefox accounts >', function() {
         state: 'unverified',
         email: 'un@verified.com'
       };
-      assert.deepEqual(localizeSpy.args[0], [
+      assert.deepEqual(localizeSpy.args[1], [
         fxaDescEl,
         'fxa-check-email'
       ]);
