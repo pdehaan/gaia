@@ -136,9 +136,11 @@ var FxaMenu = (function fxa_menu() {
         email: Normalizer.escapeHTML(email)
       });
     } else if (state == 'unverified') {
-      navigator.mozL10n.localize(menuDesc, 'fxa-check-email');
+      navigator.mozL10n.localize(menuDesc, 'fxa-check-email', {
+        email: Normalizer.escapeHTML(email)
+      });
     } else { // state == 'loggedout'
-      menuDesc.textContent = '';
+      navigator.mozL10n.localize(menuDesc, 'fxa-login');
     }
   }
 
@@ -200,7 +202,8 @@ var FxaPanel = (function fxa_panel() {
 
   function onFxAccountStateChange(data) {
     var state = data.state,
-      email = Normalizer.escapeHTML(data.email);
+      //email = Normalizer.escapeHTML(data.email);
+      email = data.email;
 
     if (state == 'verified') {
       showSpinner();
@@ -238,7 +241,8 @@ var FxaPanel = (function fxa_panel() {
 
   function showLoggedInPanel(email) {
     navigator.mozL10n.localize(loggedInEmail, 'fxa-logged-in-text', {
-      email: '<em>' + email + '</em>'
+      // email: '<em>' + email + '</em>'
+      email: email
     });
     loggedInPanel.hidden = false;
     logoutBtn.onclick = _fxaModel.onLogoutClick;
@@ -252,7 +256,8 @@ var FxaPanel = (function fxa_panel() {
   function showUnverifiedPanel(email) {
     unverifiedPanel.hidden = false;
     navigator.mozL10n.localize(unverifiedEmail, 'fxa-verification-email-sent', {
-      email: '<em>' + email + '</em>'
+      // email: '<em>' + email + '</em>'
+      email: email
     });
   }
 
