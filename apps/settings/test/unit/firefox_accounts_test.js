@@ -165,7 +165,7 @@ suite('firefox accounts >', function() {
         assert.deepEqual(localizeSpy.args[0], [
           document.getElementById('fxa-logged-in'),
           'fxa-logged-in-text',
-          { email: '<em>ver@ified.com</em>' }
+          { email: 'ver@ified.com' }
         ]);
         navigator.mozL10n.localize.restore();
     });
@@ -182,7 +182,7 @@ suite('firefox accounts >', function() {
         assert.deepEqual(localizeSpy.args[0], [
           document.getElementById('fxa-unverified-text'),
           'fxa-verification-email-sent',
-          { email: '<em>un@verified.com</em>' }
+          { email: 'un@verified.com' }
         ]);
         navigator.mozL10n.localize.restore();
     });
@@ -260,7 +260,8 @@ suite('firefox accounts >', function() {
       };
       assert.deepEqual(localizeSpy.args[1], [
         fxaDescEl,
-        'fxa-check-email'
+        'fxa-check-email',
+        { email: 'un@verified.com' }
       ]);
       navigator.mozL10n.localize.restore();
     });
