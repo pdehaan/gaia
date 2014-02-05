@@ -128,16 +128,16 @@ var FxaMenu = (function fxa_menu() {
   }
 
   function onFxAccountStateChange(data) {
-    var email = data.email,
+    var email = Normalizer.escapeHTML(data.email),
       state = data.state;
 
     if (state == 'verified') {
       navigator.mozL10n.localize(menuDesc, 'fxa-logged-in-text', {
-        email: '<strong>' + Normalizer.escapeHTML(email) + '</strong>'
+        email: email
       });
     } else if (state == 'unverified') {
       navigator.mozL10n.localize(menuDesc, 'fxa-check-email', {
-        email: '<strong>' + Normalizer.escapeHTML(email) + '</strong>'
+        email: email
       });
     } else { // state == 'loggedout'
       navigator.mozL10n.localize(menuDesc, 'fxa-login');
@@ -202,8 +202,7 @@ var FxaPanel = (function fxa_panel() {
 
   function onFxAccountStateChange(data) {
     var state = data.state,
-      //email = Normalizer.escapeHTML(data.email);
-      email = data.email;
+      email = Normalizer.escapeHTML(data.email);
 
     if (state == 'verified') {
       showSpinner();
@@ -241,7 +240,7 @@ var FxaPanel = (function fxa_panel() {
 
   function showLoggedInPanel(email) {
     navigator.mozL10n.localize(loggedInEmail, 'fxa-logged-in-text', {
-      email: '<strong>' + email + '</strong>'
+      email: email
     });
     loggedInPanel.hidden = false;
     logoutBtn.onclick = _fxaModel.onLogoutClick;
@@ -255,7 +254,7 @@ var FxaPanel = (function fxa_panel() {
   function showUnverifiedPanel(email) {
     unverifiedPanel.hidden = false;
     navigator.mozL10n.localize(unverifiedEmail, 'fxa-verification-email-sent', {
-      email: '<strong>' + email + '</strong>'
+      email: email
     });
   }
 
