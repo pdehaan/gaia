@@ -160,7 +160,8 @@ var FxaMenu = (function fxa_menu() {
 
 // TODO do we want to throttle/disable some buttons after clicking?
 var FxaPanel = (function fxa_panel() {
-  var loggedOutPanel,
+  var fxaContainer,
+    loggedOutPanel,
     loggedInPanel,
     unverifiedPanel,
     overlayPanel,
@@ -172,10 +173,10 @@ var FxaPanel = (function fxa_panel() {
 
   function init(fxaModel) {
     _fxaModel = fxaModel;
+    fxaContainer = document.getElementById('fxa-container');
     loggedOutPanel = document.getElementById('fxa-logged-out');
     loggedInPanel = document.getElementById('fxa-logged-in');
     unverifiedPanel = document.getElementById('fxa-unverified');
-    overlayPanel = document.getElementById('fxa-overlay');
     loginBtn = document.getElementById('fxa-login');
     logoutBtn = document.getElementById('fxa-logout');
     // TODO this name sucks. fix as part of html refactor pass.
@@ -260,6 +261,11 @@ var FxaPanel = (function fxa_panel() {
 
   // TODO spinner also hides itself. come up with a better name.
   function showSpinner() {
+    if (!overlayPanel) {
+      overlayPanel = document.createElement('div');
+      overlayPanel.className = 'fxa-overlay';
+      fxaContainer.appendChild(overlayPanel);
+    }
     overlayPanel.classList.add('show');
     setTimeout(function() {
       overlayPanel.classList.remove('show');
