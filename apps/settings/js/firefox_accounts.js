@@ -129,15 +129,18 @@ var FxaMenu = (function fxa_menu() {
 
   function onFxAccountStateChange(data) {
     var email = Normalizer.escapeHTML(data.email),
-      state = data.state;
+      state = data.state,
+      emailElement = document.createElement('strong');
+
+    emailElement.textContent = email;
 
     if (state == 'verified') {
       navigator.mozL10n.localize(menuDesc, 'fxa-logged-in-text', {
-        email: email
+        email: emailElement.innerHTML
       });
     } else if (state == 'unverified') {
       navigator.mozL10n.localize(menuDesc, 'fxa-check-email', {
-        email: email
+        email: emailElement.innerHTML
       });
     } else { // state == 'loggedout'
       navigator.mozL10n.localize(menuDesc, 'fxa-login');
@@ -240,8 +243,10 @@ var FxaPanel = (function fxa_panel() {
   }
 
   function showLoggedInPanel(email) {
+    var emailElement = document.createElement('strong');
+    emailElement.textContent = email;
     navigator.mozL10n.localize(loggedInEmail, 'fxa-logged-in-text', {
-      email: email
+      email: emailElement.innerHTML
     });
     loggedInPanel.hidden = false;
     logoutBtn.onclick = _fxaModel.onLogoutClick;
@@ -253,9 +258,11 @@ var FxaPanel = (function fxa_panel() {
   }
 
   function showUnverifiedPanel(email) {
+    var emailElement = document.createElement('strong');
+    emailElement.textContent = email;
     unverifiedPanel.hidden = false;
     navigator.mozL10n.localize(unverifiedEmail, 'fxa-verification-email-sent', {
-      email: email
+      email: emailElement.innerHTML
     });
   }
 
