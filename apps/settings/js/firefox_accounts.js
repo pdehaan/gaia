@@ -270,7 +270,7 @@ var FxaPanel = (function fxa_panel() {
   function showSpinner() {
     if (!overlayPanel) {
       overlayPanel = document.createElement('div');
-      overlayPanel.className = 'fxa-overlay';
+      overlayPanel.id = 'fxa-overlay';
       fxaContainer.appendChild(overlayPanel);
     }
     overlayPanel.classList.add('show');
