@@ -110,57 +110,6 @@ var FxaModel = (function fxa_model() {
   return _state;
 })();
 
-var FxaMenu = (function fxa_menu() {
-  var _fxaModel,
-    menuDesc;
-
-  function init(fxaModel) {
-    menuDesc = document.getElementById('fxa-desc');
-    _fxaModel = fxaModel;
-
-    // listen for changes
-    _fxaModel.observe('fxAccountState', onFxAccountStateChange);
-
-    // start with whatever state's in the model
-    onFxAccountStateChange(_fxaModel.fxAccountState);
-
-    document.addEventListener('visibilitychange', onVisibilityChange);
-  }
-
-  function onFxAccountStateChange(data) {
-    var email = Normalizer.escapeHTML(data.email),
-      state = data.state,
-      emailElement = document.createElement('strong');
-
-    emailElement.textContent = email;
-
-    if (state == 'verified') {
-      navigator.mozL10n.localize(menuDesc, 'fxa-logged-in-text', {
-        email: emailElement.innerHTML
-      });
-    } else if (state == 'unverified') {
-      navigator.mozL10n.localize(menuDesc, 'fxa-check-email', {
-        email: emailElement.innerHTML
-      });
-    } else { // state == 'loggedout'
-      navigator.mozL10n.localize(menuDesc, 'fxa-login');
-    }
-  }
-
-  function onVisibilityChange() {
-    if (document.hidden) {
-      _fxaModel.unobserve('fxAccountState', onFxAccountStateChange);
-    } else {
-      _fxaModel.observe('fxAccountState', onFxAccountStateChange);
-      onFxAccountStateChange(_fxaModel.fxAccountState);
-    }
-  }
-
-  return {
-    init: init
-  };
-})();
-
 // TODO do we want to throttle/disable some buttons after clicking?
 var FxaPanel = (function fxa_panel() {
   var fxaContainer,
@@ -292,15 +241,6 @@ var FxaPanel = (function fxa_panel() {
 //      the best way.
 navigator.mozL10n.ready(function onL10nReady() {
   FxaModel.init();
-  // starting when we get a chance
-  var idleObserver = {
-    time: 5,
-    onidle: function() {
-      FxaMenu.init(FxaModel);
-      navigator.removeIdleObserver(idleObserver);
-    }
-  };
-  navigator.addIdleObserver(idleObserver);
 
   // don't init the panel until panelready is fired.
   function onPanelReady() {
