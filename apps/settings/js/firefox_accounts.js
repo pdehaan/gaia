@@ -1,39 +1,5 @@
 /* global Normalizer, Observable, FxAccountsIACHelper */
 
-/**
- * Firefox Accounts settings app
- *
- * Firefox Accounts overview: https://wiki.mozilla.org/Identity/Firefox_Accounts
- *
- * This file contains three components:
- *   * FxaModel: receives updates from gecko via FxAccountsIACHelper, which
- *     is found in /shared/js/fxa_iac_helper.js
- *   * FxaMenu is the menu item in the main settings index.html page
- *   * FxaPanel is the Firefox Accounts panel (elements/firefox_accounts.html)
- *
- * The model communicates changes to the menu and panel using the Observable
- * behavior defined in settings/js/mvvm/models.js.
- *
- *   * The Model translates the Helper signals into one of three Model states:
- *     (helper output --> model state)
- *     * user is logged in and their email has been verified:
- *       {accountId: <string> email, verified: <boolean> true} -->
- *         {state: 'verified', email: email}
- *     * user is logged in, but their email is unverified:
- *       {accountId: <string> email, verified: <boolean> false} -->
- *         {state: 'unverified', email: email}
- *     * user is logged out *or* the gecko layer has an empty cache:
- *       null -->
- *         {state: 'loggedout', email: null}
- *
- *   * The Model state is parsed by the views, which then update themselves.
- *
- * We know the Helper error responses are of the form:
- *   {error: string errorMessage, details: object errorDetails}
- * For now, we just console.error them.
- * TODO Bug 964899 tracks work to generate & prioritize error handling UX.
- */
-
 'use strict';
 
 var FxaModel = (function fxa_model() {
