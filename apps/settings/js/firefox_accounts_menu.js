@@ -41,10 +41,8 @@ navigator.mozL10n.ready(function onL10nReady() {
       }
     }
 
-    function onStatusError(e) {
-      if (console && console.log) {
-        console.log('Error: ' + e.err);
-      }
+    function onStatusError(err) {
+      console.error('FxaMenu: Error getting Firefox Account: ' + err.error);
     }
 
     function onVisibilityChange() {
