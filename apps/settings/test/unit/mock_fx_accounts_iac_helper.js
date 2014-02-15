@@ -28,7 +28,7 @@ var MockFxAccountsIACHelper = (function() {
     }
     for (var i = 0; i < listeners[eventType].length; i++) {
       if (cb == listeners[eventType][i]) {
-        listeners.splice(i, 1);
+        listeners[eventType].splice(i, 1);
       }
     }
   }

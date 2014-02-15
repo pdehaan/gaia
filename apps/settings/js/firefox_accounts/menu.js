@@ -28,7 +28,7 @@ var FxaMenu = (function fxa_menu() {
   // if !e.verified, user is logged in & unverified.
   function onStatusChange(e) {
     var emailElement = document.createElement('strong'),
-      email = e ? Normalizer.escapeHTML(e.email) : '';
+      email = e ? Normalizer.escapeHTML(e.accountId) : '';
     emailElement.textContent = email;
 
     if (!e) {
