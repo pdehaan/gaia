@@ -1,4 +1,5 @@
 /* global Normalizer, FxAccountsIACHelper */
+/* exported FxaPanel */
 
 'use strict';
 
@@ -11,9 +12,12 @@ var FxaPanel = (function fxa_panel() {
     loginBtn,
     logoutBtn,
     loggedInEmail,
-    unverifiedEmail;
+    unverifiedEmail,
+    fxaHelper;
 
-  function init() {
+  function init(helper) {
+    // allow mock to be passed in for unit testing
+    fxaHelper = helper || FxAccountsIACHelper;
     fxaContainer = document.getElementById('fxa-container');
     loggedOutPanel = document.getElementById('fxa-logged-out');
     loggedInPanel = document.getElementById('fxa-logged-in');
@@ -32,18 +36,18 @@ var FxaPanel = (function fxa_panel() {
 
   function onVisibilityChange() {
     if (document.hidden) {
-      FxAccountsIACHelper.removeEventListener('onlogin', refreshStatus);
-      FxAccountsIACHelper.removeEventListener('onverifiedlogin', refreshStatus);
-      FxAccountsIACHelper.removeEventListener('onlogout', refreshStatus);
+      fxaHelper.removeEventListener('onlogin', refreshStatus);
+      fxaHelper.removeEventListener('onverifiedlogin', refreshStatus);
+      fxaHelper.removeEventListener('onlogout', refreshStatus);
     } else {
-      FxAccountsIACHelper.addEventListener('onlogin', refreshStatus);
-      FxAccountsIACHelper.addEventListener('onverifiedlogin', refreshStatus);
-      FxAccountsIACHelper.addEventListener('onlogout', refreshStatus);
+      fxaHelper.addEventListener('onlogin', refreshStatus);
+      fxaHelper.addEventListener('onverifiedlogin', refreshStatus);
+      fxaHelper.addEventListener('onlogout', refreshStatus);
     }
   }
 
   function refreshStatus() {
-    FxAccountsIACHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
+    fxaHelper.getAccounts(onFxAccountStateChange, onFxAccountError);
   }
 
   // if data == null, user is logged out.
@@ -131,13 +135,13 @@ var FxaPanel = (function fxa_panel() {
   function onLogoutClick(e) {
     e.stopPropagation();
     e.preventDefault();
-    FxAccountsIACHelper.logout(onFxAccountStateChange, onFxAccountError);
+    fxaHelper.logout(onFxAccountStateChange, onFxAccountError);
   }
 
   function onLoginClick(e) {
     e.stopPropagation();
     e.preventDefault();
-    FxAccountsIACHelper.openFlow(onFxAccountStateChange, onFxAccountError);
+    fxaHelper.openFlow(onFxAccountStateChange, onFxAccountError);
   }
 
   return {
@@ -146,11 +150,3 @@ var FxaPanel = (function fxa_panel() {
   };
 
 })();
-
-navigator.mozL10n.ready(function onL10nReady() {
-  function onPanelReady() {
-    FxaPanel.init();
-    window.removeEventListener('panelready', onPanelReady);
-  }
-  window.addEventListener('panelready', onPanelReady);
-});
