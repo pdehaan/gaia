@@ -18,7 +18,7 @@ var FxaPanel = (function fxa_panel() {
   function init(helper) {
     // allow mock to be passed in for unit testing
     fxaHelper = helper || FxAccountsIACHelper;
-    fxaContainer = document.getElementById('fxa-container');
+    fxaContainer = document.getElementById('fxa');
     loggedOutPanel = document.getElementById('fxa-logged-out');
     loggedInPanel = document.getElementById('fxa-logged-in');
     unverifiedPanel = document.getElementById('fxa-unverified');
@@ -54,7 +54,7 @@ var FxaPanel = (function fxa_panel() {
   // if data.verified, user is logged in & verified.
   // if !data.verified, user is logged in & unverified.
   function onFxAccountStateChange(data) {
-    var email = data ? Normalizer.escapeHTML(data.email) : '';
+    var email = data ? Normalizer.escapeHTML(data.accountId) : '';
 
     if (!data) {
       showSpinner();
