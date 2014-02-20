@@ -112,7 +112,21 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     };
   };
 
-  var connect = function connect(callback) {
+  var requestQueue = [];
+  var isConnecting = false;
+  var connect = function connect(cb) {
+    if (isConnecting) { return requestQueue.push(cb); }
+    isConnecting = true;
+    _connect(function onConnect(err) {
+      isConnecting = false;
+      cb && cb(err);
+      if (requestQueue.length) {
+        connect(requestQueue.shift());
+      }
+    });
+  };
+
+  var _connect = function _connect(callback) {
     getSelf(function onApp(app) {
       if (!app) {
         return;

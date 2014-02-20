@@ -1,8 +1,8 @@
 'use strict';
 
-require('/shared/js/fxa_iac_client.js');
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_app.js');
+mocha.globals(['FxAccountsIACHelper']);
 
 suite('FirefoxOS Accounts IAC Client Suite', function() {
   var realMozApps;
@@ -42,7 +42,7 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
     navigator.mozApps = realMozApps;
   });
 
-  setup(function() {
+  setup(function(done) {
     // For each test, setup the 'self' app, able to
     // do IAC
     var app = new MockApp({
@@ -57,6 +57,9 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
       }
     });
     navigator.mozApps.setSelf(app);
+    // XXX we have to require() the system under test *after* we define the
+    //     MockApp, because the code calls app.connect() as soon as it is loaded
+    require('/shared/js/fxa_iac_client.js', done);
   });
 
   teardown(function() {
