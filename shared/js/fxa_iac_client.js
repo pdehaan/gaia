@@ -115,11 +115,15 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
   var requestQueue = [];
   var isConnecting = false;
   var connect = function connect(cb) {
-    if (isConnecting) { return requestQueue.push(cb); }
+    if (isConnecting) {
+      return requestQueue.push(cb);
+    }
     isConnecting = true;
     _connect(function onConnect(err) {
       isConnecting = false;
-      cb && cb(err);
+      if (typeof cb === 'function') {
+        cb(err);
+      }
       if (requestQueue.length) {
         connect(requestQueue.shift());
       }
