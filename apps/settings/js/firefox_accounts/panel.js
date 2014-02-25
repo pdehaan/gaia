@@ -9,6 +9,7 @@ var FxaPanel = (function fxa_panel() {
     loggedInPanel,
     unverifiedPanel,
     overlayPanel,
+    cancelBtn,
     loginBtn,
     logoutBtn,
     loggedInEmail,
@@ -22,6 +23,7 @@ var FxaPanel = (function fxa_panel() {
     loggedOutPanel = document.getElementById('fxa-logged-out');
     loggedInPanel = document.getElementById('fxa-logged-in');
     unverifiedPanel = document.getElementById('fxa-unverified');
+    cancelBtn = document.getElementById('fxa-cancel-confirmation');
     loginBtn = document.getElementById('fxa-login');
     logoutBtn = document.getElementById('fxa-logout');
     loggedInEmail = document.getElementById('fxa-logged-in-text');
@@ -121,12 +123,14 @@ var FxaPanel = (function fxa_panel() {
   function hideUnverifiedPanel() {
     unverifiedPanel.hidden = true;
     unverifiedEmail.textContent = '';
+    cancelBtn.onclick = null;
   }
 
   function showUnverifiedPanel(email) {
     var emailElement = document.createElement('strong');
     emailElement.textContent = email;
     unverifiedPanel.hidden = false;
+    cancelBtn.onclick = onLogoutClick;
     navigator.mozL10n.localize(unverifiedEmail, 'fxa-verification-email-sent', {
       email: emailElement.innerHTML
     });
