@@ -1,4 +1,4 @@
-/* global Normalizer, FxAccountsIACHelper */
+/* global Normalizer, MozActivity, FxAccountsIACHelper */
 /* exported FxaPanel */
 
 'use strict';
@@ -10,6 +10,7 @@ var FxaPanel = (function fxa_panel() {
     unverifiedPanel,
     overlayPanel,
     cancelBtn,
+    changePasswordBtn,
     loginBtn,
     logoutBtn,
     loggedInEmail,
@@ -24,6 +25,7 @@ var FxaPanel = (function fxa_panel() {
     loggedInPanel = document.getElementById('fxa-logged-in');
     unverifiedPanel = document.getElementById('fxa-unverified');
     cancelBtn = document.getElementById('fxa-cancel-confirmation');
+    changePasswordBtn = document.getElementById('fxa-change-password');
     loginBtn = document.getElementById('fxa-login');
     logoutBtn = document.getElementById('fxa-logout');
     loggedInEmail = document.getElementById('fxa-logged-in-text');
@@ -108,6 +110,7 @@ var FxaPanel = (function fxa_panel() {
     loggedInPanel.hidden = true;
     loggedInEmail.textContent = '';
     logoutBtn.onclick = null;
+    changePasswordBtn.onclick = null;
   }
 
   function showLoggedInPanel(email) {
@@ -118,6 +121,7 @@ var FxaPanel = (function fxa_panel() {
     });
     loggedInPanel.hidden = false;
     logoutBtn.onclick = onLogoutClick;
+    changePasswordBtn.onclick = onChangePassword;
   }
 
   function hideUnverifiedPanel() {
@@ -146,6 +150,21 @@ var FxaPanel = (function fxa_panel() {
     e.stopPropagation();
     e.preventDefault();
     fxaHelper.openFlow(onFxAccountStateChange, onFxAccountError);
+  }
+
+  function onChangePassword(e) {
+    // todo set URL via pref
+    var activity = new MozActivity({
+        name: 'view',
+        data: {
+            type: 'url', // Possibly text/html in future versions
+            url: 'https://accounts.firefox.com/reset_password'
+        }
+    });
+    activity.onsuccess = function() {
+      // if we didn't get evicted from memory, check status
+      refreshStatus();
+    };
   }
 
   return {

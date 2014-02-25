@@ -39,6 +39,15 @@
         "target": "device"
        },
       "disposition": "window"
+    },
+    "view": {
+      "filters": {
+        "type": "url",
+        "url": {
+          "required": true,
+          "regexp":"/^https?:/"
+        }
+      }
     }
   },
   "messages": ["bluetooth-pairing-request",
