@@ -10,6 +10,14 @@
 
 (function(exports) {
 
+  var pref = 'identity.fxaccounts.reset-password.url';
+  var fxaSettingsHelper = SettingsHelper(pref);
+  var fxaURL;
+
+  fxaSettingsHelper.get(function on_fxa_get_settings(url) {
+    fxaURL = url;
+  });
+
   function _setAccountDetails(response) {
     if (response && response.user.accountId) {
       FxaModuleManager.setParam('email', response.user.accountId);
@@ -72,8 +80,15 @@
     },
     requestPasswordReset:
       function fxmsr_requestPasswordReset(email, onsuccess, onerror) {
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=945365
-      onsuccess && onsuccess();
+      var activity = new MozActivity({
+        name: 'view',
+        data: {
+          type: 'url',
+          url: fxaURL
+        }
+      });
+      onsuccess && (activity.onsuccess = onsuccess);
+      activity.onerror = console.error;
     }
   };
   exports.FxModuleServerRequest = FxModuleServerRequest;

@@ -61,20 +61,24 @@ var FxaModuleEnterPassword = (function() {
   }
 
   function _forgotPassword() {
-    FxaModuleOverlay.show(_('fxa-requesting-password-reset'));
-    _requestPasswordReset.call(
-      this,
-      this.email,
-      function(isRequestHandled) {
-        FxaModuleOverlay.hide();
-        if (!isRequestHandled) {
-          _showCouldNotResetPassword.call(this);
-          return;
-        }
+    if (FtuLauncher.isFtuRunning()) {
+      this.showErrorResponse({
+        error: 'RESET_PASSWORD_IN_SETTINGS'
+      });
+    } else {
+      _requestPasswordReset.call(
+        this,
+        this.email,
+        function(isRequestHandled) {
+          if (!isRequestHandled) {
+            _showCouldNotResetPassword.call(this);
+            return;
+          }
 
-        FxaModuleStates.setState(FxaModuleStates.PASSWORD_RESET_SUCCESS);
-      }
-    );
+          FxaModuleStates.setState(FxaModuleStates.PASSWORD_RESET_SUCCESS);
+        }
+      );
+    }
   }
 
   var Module = Object.create(FxaModule);

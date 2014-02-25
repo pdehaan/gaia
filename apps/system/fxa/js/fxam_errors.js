@@ -14,6 +14,10 @@
       title: 'fxa-reset-password-error-title',
       message: 'fxa-reset-password-error-message'
     },
+    RESET_PASSWORD_IN_SETTINGS: {
+      title: 'fxa-reset-password-in-settings-title',
+      message: 'fxa-reset-password-in-settings-message'
+    },
     INVALID_ACCOUNTID: {
       title: 'fxa-invalid-email-title',
       message: 'fxa-invalid-email-message'
